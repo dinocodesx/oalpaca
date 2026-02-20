@@ -19,7 +19,7 @@ pub struct Model {
     pub details: ModelDetails,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelsResponse {
     pub models: Vec<Model>,
 }
@@ -28,17 +28,45 @@ pub struct ModelsResponse {
 pub async fn list_models() -> Result<Vec<Model>, String> {
     let client = reqwest::Client::new();
 
-    match client.get("http://localhost:11434/api/tags").send().await {
-        Ok(response) => {
-            if response.status().is_success() {
-                match response.json::<ModelsResponse>().await {
-                    Ok(models_response) => Ok(models_response.models),
-                    Err(e) => Err(format!("Failed to parse response: {}", e)),
-                }
+    let response = client
+        .get("http://localhost:11434/api/tags")
+        .send()
+        .await
+        .map_err(|e| {
+            if e.is_connect() {
+                "Could not connect to Ollama. Make sure Ollama is running on http://localhost:11434"
+                    .to_string()
+            } else if e.is_timeout() {
+                "Request to Ollama timed out while fetching the model list".to_string()
             } else {
-                Err(format!("HTTP error: {}", response.status()))
+                format!("Network error while fetching the model list: {}", e)
             }
-        }
-        Err(e) => Err(format!("Failed to connect to Ollama: {}", e)),
+        })?;
+
+    let status = response.status();
+
+    if !status.is_success() {
+        let error_body = response.text().await.unwrap_or_default();
+        let ollama_msg = serde_json::from_str::<serde_json::Value>(&error_body)
+            .ok()
+            .and_then(|v| v["error"].as_str().map(String::from))
+            .unwrap_or(error_body);
+
+        return Err(match status.as_u16() {
+            500 => format!(
+                "Ollama encountered an internal error while listing models: {}",
+                ollama_msg
+            ),
+            _ => format!(
+                "Unexpected error fetching model list (HTTP {}): {}",
+                status, ollama_msg
+            ),
+        });
     }
+
+    response
+        .json::<ModelsResponse>()
+        .await
+        .map(|r| r.models)
+        .map_err(|e| format!("Failed to parse the model list response from Ollama: {}", e))
 }

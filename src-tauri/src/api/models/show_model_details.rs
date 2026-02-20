@@ -28,22 +28,55 @@ pub async fn show_model_details(model: String) -> Result<ShowModelResponse, Stri
 
     let body = serde_json::json!({ "model": model });
 
-    match client
+    let response = client
         .post("http://localhost:11434/api/show")
         .json(&body)
         .send()
         .await
-    {
-        Ok(response) => {
-            if response.status().is_success() {
-                match response.json::<ShowModelResponse>().await {
-                    Ok(show_response) => Ok(show_response),
-                    Err(e) => Err(format!("Failed to parse response: {}", e)),
-                }
+        .map_err(|e| {
+            if e.is_connect() {
+                "Could not connect to Ollama. Make sure Ollama is running on http://localhost:11434"
+                    .to_string()
+            } else if e.is_timeout() {
+                format!(
+                    "Request to Ollama timed out while fetching details for model '{}'",
+                    model
+                )
             } else {
-                Err(format!("HTTP error: {}", response.status()))
+                format!(
+                    "Network error while fetching details for model '{}': {}",
+                    model, e
+                )
             }
-        }
-        Err(e) => Err(format!("Failed to connect to Ollama: {}", e)),
+        })?;
+
+    let status = response.status();
+
+    if !status.is_success() {
+        let error_body = response.text().await.unwrap_or_default();
+        let ollama_msg = serde_json::from_str::<serde_json::Value>(&error_body)
+            .ok()
+            .and_then(|v| v["error"].as_str().map(String::from))
+            .unwrap_or(error_body);
+
+        return Err(match status.as_u16() {
+            404 => format!("Model '{}' not found", model),
+            400 => format!("Invalid request for model '{}': {}", model, ollama_msg),
+            500 => format!(
+                "Ollama encountered an internal error while fetching details for model '{}': {}",
+                model, ollama_msg
+            ),
+            _ => format!(
+                "Unexpected error fetching details for model '{}' (HTTP {}): {}",
+                model, status, ollama_msg
+            ),
+        });
     }
+
+    response.json::<ShowModelResponse>().await.map_err(|e| {
+        format!(
+            "Failed to parse the model details response for '{}' from Ollama: {}",
+            model, e
+        )
+    })
 }
