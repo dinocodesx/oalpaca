@@ -1,6 +1,4 @@
-/* ============================================
-   Assistant Message — Clean Notion-style rendering
-   ============================================ */
+/* Assistant Message — Clean Notion-style rendering */
 
 .assistant-message {
     padding: 0 0 8px;
@@ -15,9 +13,7 @@
     overflow-wrap: break-word;
 }
 
-/* ============================================
-   Markdown — Headings
-   ============================================ */
+/* Markdown — Headings */
 
 .md-h1 {
     font-size: 24px;
@@ -57,9 +53,7 @@
     line-height: 1.4;
 }
 
-/* ============================================
-   Markdown — Paragraphs & Text
-   ============================================ */
+/* Markdown — Paragraphs & Text */
 
 .md-p {
     margin: 0 0 10px;
@@ -96,9 +90,7 @@
     margin: 20px 0;
 }
 
-/* ============================================
-   Markdown — Lists
-   ============================================ */
+/* Markdown — Lists */
 
 .md-ul {
     margin: 6px 0 10px;
@@ -132,9 +124,7 @@
     margin-bottom: 4px;
 }
 
-/* ============================================
-   Markdown — Inline Code
-   ============================================ */
+/* Markdown — Inline Code */
 
 .md-code-inline {
     font-family:
@@ -148,9 +138,7 @@
     line-height: 1.4;
 }
 
-/* ============================================
-   Markdown — Code Blocks
-   ============================================ */
+/* Markdown — Code Blocks */
 
 .md-pre {
     background: rgb(247, 246, 243);
@@ -190,9 +178,7 @@
     tab-size: 4;
 }
 
-/* ============================================
-   Markdown — Blockquote
-   ============================================ */
+/* Markdown — Blockquote */
 
 .md-blockquote {
     margin: 10px 0;
@@ -209,9 +195,7 @@
     margin-bottom: 0;
 }
 
-/* ============================================
-   Markdown — Tables
-   ============================================ */
+/* Markdown — Tables */
 
 .md-table-wrapper {
     overflow-x: auto;
@@ -257,9 +241,7 @@
     border-bottom: none;
 }
 
-/* ============================================
-   Typing Indicator
-   ============================================ */
+/* Typing Indicator */
 
 .typing-indicator {
     display: inline-flex;
@@ -302,9 +284,7 @@
     }
 }
 
-/* ============================================
-   Streaming Cursor
-   ============================================ */
+/* Streaming Cursor */
 
 .streaming-cursor {
     display: inline;

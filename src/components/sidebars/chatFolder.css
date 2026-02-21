@@ -1,15 +1,3 @@
-/* ============================================
-   Chat Folder — Collapsible folder component
-   ============================================ */
-
-/* ============================================
-   Drop-zone wrapper div (wraps the folder header button)
-   ============================================ */
-
-/* ============================================
-   Drag cursor on chat items inside folder
-   ============================================ */
-
 /* Drag cursor lives on the inner button for chats inside a folder */
 .chat-folder-chat-item[draggable="true"] {
     cursor: grab;
@@ -28,9 +16,7 @@
     margin-bottom: 2px;
 }
 
-/* ============================================
-   Folder Header
-   ============================================ */
+/* Folder Header */
 
 .chat-folder-header {
     display: flex;
@@ -90,9 +76,7 @@
     }
 }
 
-/* ============================================
-   Chevron (rotation on expand)
-   ============================================ */
+/* Chevron (rotation on expand) */
 
 .chat-folder-chevron {
     flex-shrink: 0;
@@ -106,9 +90,7 @@
     transform: rotate(90deg);
 }
 
-/* ============================================
-   Folder Name & Count
-   ============================================ */
+/* Folder Name & Count */
 
 .chat-folder-name {
     flex: 1;
@@ -139,9 +121,7 @@
     opacity: 0;
 }
 
-/* ============================================
-   Folder Header Actions (hover-reveal)
-   ============================================ */
+/* Folder Header Actions (hover-reveal) */
 
 .chat-folder-actions {
     display: flex;
@@ -188,9 +168,7 @@
     color: #dc2626;
 }
 
-/* ============================================
-   Folder Children (indented chats)
-   ============================================ */
+/* Folder Children (indented chats) */
 
 .chat-folder-children {
     padding-left: 14px;
@@ -217,9 +195,7 @@
     font-style: italic;
 }
 
-/* ============================================
-   Chat Item inside Folder
-   ============================================ */
+/* Chat Item inside Folder */
 
 .chat-folder-chat-wrapper {
     margin-bottom: 1px;
@@ -277,9 +253,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Chat Item Actions (hover-reveal)
-   ============================================ */
+/* Chat Item Actions (hover-reveal) */
 
 .chat-folder-chat-actions {
     display: flex;
@@ -299,9 +273,7 @@
     pointer-events: auto;
 }
 
-/* ============================================
-   Rename Row (inline editing)
-   ============================================ */
+/* Rename Row (inline editing) */
 
 .chat-folder-rename-row,
 .chat-folder-chat-rename-row {
@@ -370,9 +342,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Context Menu
-   ============================================ */
+/* Context Menu */
 
 .chat-folder-context-menu {
     min-width: 140px;

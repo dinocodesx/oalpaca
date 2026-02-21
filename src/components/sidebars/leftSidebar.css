@@ -1,6 +1,4 @@
-/* ============================================
-   Left Sidebar — Semi-transparent Notion style
-   ============================================ */
+/* Left Sidebar — Semi-transparent Notion style */
 
 .left-sidebar {
     width: var(--sidebar-width, 260px);
@@ -59,9 +57,7 @@
     }
 }
 
-/* ============================================
-   Workspace Header
-   ============================================ */
+/* Workspace Header */
 
 .sidebar-workspace-header {
     display: flex;
@@ -95,9 +91,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Search
-   ============================================ */
+/* Search */
 
 .sidebar-search {
     padding: 0 8px 6px;
@@ -178,9 +172,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Content Area (scrollable)
-   ============================================ */
+/* Content Area (scrollable) */
 
 .sidebar-content {
     flex: 1;
@@ -208,9 +200,7 @@
     background: rgba(0, 0, 0, 0.18);
 }
 
-/* ============================================
-   Section (Folders, Recent chats, Search)
-   ============================================ */
+/* Section (Folders, Recent chats, Search) */
 
 .sidebar-section {
     display: flex;
@@ -310,9 +300,7 @@
     }
 }
 
-/* ============================================
-   Create Folder (inline input row)
-   ============================================ */
+/* Create Folder (inline input row) */
 
 .sidebar-create-folder-row {
     display: flex;
@@ -381,9 +369,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Bottom Section (Settings + Profile)
-   ============================================ */
+/* Bottom Section (Settings + Profile) */
 
 .sidebar-bottom {
     flex-shrink: 0;
@@ -393,9 +379,7 @@
     background: rgba(247, 247, 245, 0.5);
 }
 
-/* ============================================
-   Settings Button
-   ============================================ */
+/* Settings Button */
 
 .sidebar-settings-btn {
     display: flex;
@@ -438,9 +422,7 @@
     transform: rotate(180deg);
 }
 
-/* ============================================
-   Settings Panel (model list)
-   ============================================ */
+/* Settings Panel (model list) */
 
 .sidebar-settings-panel {
     padding: 0 8px 6px;
@@ -532,9 +514,7 @@
     font-style: italic;
 }
 
-/* ============================================
-   User Profile (bottom-most)
-   ============================================ */
+/* User Profile (bottom-most) */
 
 .user-profile {
     display: flex;

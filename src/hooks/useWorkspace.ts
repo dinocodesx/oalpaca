@@ -6,9 +6,7 @@ export function useWorkspace() {
   const [workspaces, setWorkspaces] = useState<WorkspaceMeta[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>("");
 
-  // ──────────────────────────────────────────────
   //  Fetch workspaces
-  // ──────────────────────────────────────────────
   const refreshWorkspaces = useCallback(async () => {
     try {
       const result = await invoke<WorkspacesIndex>("get_all_workspaces");
@@ -25,9 +23,7 @@ export function useWorkspace() {
     refreshWorkspaces();
   }, [refreshWorkspaces]);
 
-  // ──────────────────────────────────────────────
   //  Workspace actions
-  // ──────────────────────────────────────────────
 
   /** Sets the active workspace on the backend and updates local state. */
   const switchWorkspace = useCallback(async (workspaceId: string) => {
@@ -66,9 +62,7 @@ export function useWorkspace() {
     [refreshWorkspaces],
   );
 
-  // ──────────────────────────────────────────────
   //  Derived
-  // ──────────────────────────────────────────────
   const activeWorkspace =
     workspaces.find((w) => w.id === activeWorkspaceId) ?? null;
 

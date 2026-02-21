@@ -1,6 +1,4 @@
-/* ============================================
-   Model Selector — Inline native select in chat input
-   ============================================ */
+/* Model Selector — Inline native select in chat input */
 
 .select-model {
     display: flex;

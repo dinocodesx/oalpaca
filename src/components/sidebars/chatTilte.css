@@ -1,16 +1,11 @@
-/* ============================================
-   Chat Title Wrapper (needed for relative positioning
-   of the folder picker dropdown)
-   ============================================ */
+/* Chat Title Wrapper (needed for relative positioning of the folder picker dropdown) */
 
 .chat-title-wrapper {
     position: relative;
     width: 100%;
 }
 
-/* ============================================
-   Chat Title Item — Sidebar chat entry
-   ============================================ */
+/* Chat Title Item — Sidebar chat entry */
 
 .chat-title-item {
     display: flex;
@@ -54,9 +49,7 @@
     cursor: grabbing;
 }
 
-/* ============================================
-   Chat Icon
-   ============================================ */
+/* Chat Icon */
 
 .chat-title-icon {
     display: flex;
@@ -68,9 +61,7 @@
     color: rgba(55, 53, 47, 0.35);
 }
 
-/* ============================================
-   Chat Title Text
-   ============================================ */
+/* Chat Title Text */
 
 .chat-title-text {
     font-size: 13px;
@@ -93,9 +84,7 @@
     font-weight: 500;
 }
 
-/* ============================================
-   Hover-reveal Actions (rename / delete)
-   ============================================ */
+/* Hover-reveal Actions (rename / delete) */
 
 .chat-title-actions {
     display: flex;
@@ -147,9 +136,7 @@
     color: #dc2626;
 }
 
-/* ============================================
-   Inline Rename Row
-   ============================================ */
+/* Inline Rename Row */
 
 .chat-title-rename-row {
     display: flex;
@@ -218,9 +205,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Context Menu (right-click)
-   ============================================ */
+/* Context Menu (right-click) */
 
 .chat-title-context-menu {
     min-width: 140px;
@@ -310,9 +295,7 @@
     font-style: italic;
 }
 
-/* ============================================
-   Folder Picker Dropdown (from hover button)
-   ============================================ */
+/* Folder Picker Dropdown (from hover button) */
 
 .chat-title-folder-picker {
     position: absolute;

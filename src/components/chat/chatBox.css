@@ -1,6 +1,4 @@
-/* ============================================
-   ChatBox — Input area at the bottom of the chat
-   ============================================ */
+/* ChatBox — Input area at the bottom of the chat */
 
 .chatbox-wrapper {
     padding: 12px 24px 20px;
@@ -33,9 +31,7 @@
         0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
-/* ============================================
-   Textarea
-   ============================================ */
+/* Textarea */
 
 .chatbox-textarea {
     flex: 1;
@@ -70,9 +66,7 @@
     cursor: not-allowed;
 }
 
-/* ============================================
-   Controls Row (model selector + send button)
-   ============================================ */
+/* Controls Row (model selector + send button) */
 
 .chatbox-controls {
     display: flex;
@@ -90,9 +84,7 @@
     flex-shrink: 0;
 }
 
-/* ============================================
-   Send Button — Circular, dark
-   ============================================ */
+/* Send Button — Circular, dark */
 
 .chatbox-send-btn {
     display: flex;
@@ -129,9 +121,7 @@
     background: rgb(55, 53, 47);
 }
 
-/* ============================================
-   Hint text
-   ============================================ */
+/* Hint text */
 
 .chatbox-hint {
     margin-top: 8px;

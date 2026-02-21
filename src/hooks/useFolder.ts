@@ -5,9 +5,7 @@ import type { FolderMeta } from "../types/folder";
 export function useFolder(activeWorkspaceId: string) {
   const [folders, setFolders] = useState<FolderMeta[]>([]);
 
-  // ──────────────────────────────────────────────
   //  Fetch folders for the active workspace
-  // ──────────────────────────────────────────────
   const refreshFolders = useCallback(
     async (wsId?: string) => {
       const id = wsId ?? activeWorkspaceId;
@@ -30,9 +28,7 @@ export function useFolder(activeWorkspaceId: string) {
     }
   }, [activeWorkspaceId, refreshFolders]);
 
-  // ──────────────────────────────────────────────
   //  Folder actions
-  // ──────────────────────────────────────────────
 
   const createNewFolder = useCallback(
     async (name: string) => {

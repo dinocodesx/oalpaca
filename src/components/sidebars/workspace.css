@@ -1,6 +1,4 @@
-/* ============================================
-   Workspace Dropdown — Notion-style
-   ============================================ */
+/* Workspace Dropdown — Notion-style */
 
 .workspace-dropdown-wrapper {
     position: relative;
@@ -8,9 +6,7 @@
     min-width: 0;
 }
 
-/* ============================================
-   Trigger Button
-   ============================================ */
+/* Trigger Button */
 
 .workspace-trigger {
     display: flex;
@@ -51,9 +47,7 @@
     color: rgba(55, 53, 47, 0.45);
 }
 
-/* ============================================
-   Dropdown Menu
-   ============================================ */
+/* Dropdown Menu */
 
 .workspace-dropdown {
     position: absolute;
@@ -83,9 +77,7 @@
     }
 }
 
-/* ============================================
-   Dropdown List
-   ============================================ */
+/* Dropdown List */
 
 .workspace-dropdown-list {
     max-height: 220px;
@@ -106,9 +98,7 @@
     border-radius: 9999px;
 }
 
-/* ============================================
-   Dropdown Item
-   ============================================ */
+/* Dropdown Item */
 
 .workspace-dropdown-item {
     display: flex;
@@ -156,9 +146,7 @@
     min-width: 0;
 }
 
-/* ============================================
-   Item Actions (rename / delete)
-   ============================================ */
+/* Item Actions (rename / delete) */
 
 .workspace-dropdown-item-actions {
     display: flex;
@@ -201,9 +189,7 @@
     color: #dc2626;
 }
 
-/* ============================================
-   Separator
-   ============================================ */
+/* Separator */
 
 .workspace-dropdown-separator {
     height: 1px;
@@ -211,9 +197,7 @@
     margin: 4px 6px;
 }
 
-/* ============================================
-   Create Workspace Button
-   ============================================ */
+/* Create Workspace Button */
 
 .workspace-dropdown-create-btn {
     display: flex;
@@ -246,9 +230,7 @@
     flex-shrink: 0;
 }
 
-/* ============================================
-   Inline Input (for create & rename)
-   ============================================ */
+/* Inline Input (for create & rename) */
 
 .workspace-create-form,
 .workspace-rename-row {
