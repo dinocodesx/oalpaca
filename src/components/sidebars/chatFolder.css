@@ -1,0 +1,452 @@
+/* ============================================
+   Chat Folder — Collapsible folder component
+   ============================================ */
+
+/* ============================================
+   Drop-zone wrapper div (wraps the folder header button)
+   ============================================ */
+
+/* ============================================
+   Drag cursor on chat items inside folder
+   ============================================ */
+
+/* Drag cursor lives on the inner button for chats inside a folder */
+.chat-folder-chat-item[draggable="true"] {
+    cursor: grab;
+}
+
+.chat-folder-chat-item[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+/* Drop-zone wrapper: sits around the folder header button */
+.chat-folder-drop-zone {
+    border-radius: 6px;
+}
+
+.chat-folder {
+    margin-bottom: 2px;
+}
+
+/* ============================================
+   Folder Header
+   ============================================ */
+
+.chat-folder-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 5px 8px 5px 6px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgba(55, 53, 47, 0.65);
+    transition: background 0.12s ease;
+    gap: 4px;
+    line-height: 1.4;
+    position: relative;
+}
+
+.chat-folder-header:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+/* Drag-over state — applied to the wrapper div, highlights the folder header */
+.chat-folder-header-drag-over {
+    outline: 2px dashed rgba(35, 131, 226, 0.45);
+    outline-offset: -2px;
+    border-radius: 6px;
+    background: rgba(35, 131, 226, 0.07);
+}
+
+.chat-folder-header-drag-over .chat-folder-header {
+    background: transparent;
+}
+
+.chat-folder-header-drag-over .chat-folder-name {
+    color: rgba(35, 131, 226, 0.85) !important;
+}
+
+/* Drop hint label replaces the count badge during drag-over */
+.chat-folder-drop-hint {
+    font-size: 11px;
+    color: rgba(35, 131, 226, 0.75);
+    flex-shrink: 0;
+    padding: 0 4px;
+    font-weight: 500;
+    animation: dropHintPulse 0.8s ease infinite alternate;
+}
+
+@keyframes dropHintPulse {
+    from {
+        opacity: 0.6;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   Chevron (rotation on expand)
+   ============================================ */
+
+.chat-folder-chevron {
+    flex-shrink: 0;
+    color: rgba(55, 53, 47, 0.4);
+    transition: transform 0.18s ease;
+    width: 14px;
+    height: 14px;
+}
+
+.chat-folder-chevron-expanded {
+    transform: rotate(90deg);
+}
+
+/* ============================================
+   Folder Name & Count
+   ============================================ */
+
+.chat-folder-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: rgba(55, 53, 47, 0.65);
+    transition: color 0.12s ease;
+}
+
+.chat-folder-header:hover .chat-folder-name {
+    color: rgb(55, 53, 47);
+}
+
+.chat-folder-count {
+    font-size: 11px;
+    color: rgba(55, 53, 47, 0.3);
+    flex-shrink: 0;
+    padding: 0 4px;
+    min-width: 16px;
+    text-align: center;
+    transition: opacity 0.12s ease;
+}
+
+.chat-folder-header:hover .chat-folder-count {
+    opacity: 0;
+}
+
+/* ============================================
+   Folder Header Actions (hover-reveal)
+   ============================================ */
+
+.chat-folder-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.chat-folder-header:hover .chat-folder-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.chat-folder-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: rgba(55, 53, 47, 0.4);
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
+    flex-shrink: 0;
+}
+
+.chat-folder-action-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+.chat-folder-action-btn-danger:hover {
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
+}
+
+/* ============================================
+   Folder Children (indented chats)
+   ============================================ */
+
+.chat-folder-children {
+    padding-left: 14px;
+    margin-left: 8px;
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
+    animation: folderExpand 0.15s ease;
+}
+
+@keyframes folderExpand {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-folder-empty {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.3);
+    font-style: italic;
+}
+
+/* ============================================
+   Chat Item inside Folder
+   ============================================ */
+
+.chat-folder-chat-wrapper {
+    margin-bottom: 1px;
+}
+
+.chat-folder-chat-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 4px 8px 4px 6px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgba(55, 53, 47, 0.65);
+    transition: background 0.1s ease;
+    gap: 6px;
+    line-height: 1.4;
+    position: relative;
+}
+
+.chat-folder-chat-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-folder-chat-item-active {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.chat-folder-chat-item-active .chat-folder-chat-title {
+    color: rgb(55, 53, 47);
+    font-weight: 500;
+}
+
+.chat-folder-chat-icon {
+    flex-shrink: 0;
+    color: rgba(55, 53, 47, 0.35);
+    width: 13px;
+    height: 13px;
+}
+
+.chat-folder-chat-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.12s ease;
+}
+
+.chat-folder-chat-item:hover .chat-folder-chat-title {
+    color: rgb(55, 53, 47);
+}
+
+/* ============================================
+   Chat Item Actions (hover-reveal)
+   ============================================ */
+
+.chat-folder-chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.chat-folder-chat-item:hover .chat-folder-chat-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============================================
+   Rename Row (inline editing)
+   ============================================ */
+
+.chat-folder-rename-row,
+.chat-folder-chat-rename-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 6px;
+}
+
+.chat-folder-rename-input {
+    flex: 1;
+    min-width: 0;
+    padding: 3px 7px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgb(55, 53, 47);
+    background: white;
+    outline: none;
+    line-height: 1.4;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.chat-folder-rename-input:focus {
+    border-color: rgba(35, 131, 226, 0.5);
+    box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.chat-folder-rename-input::placeholder {
+    color: rgba(55, 53, 47, 0.35);
+}
+
+.chat-folder-rename-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
+}
+
+.chat-folder-rename-confirm {
+    color: #16a34a;
+}
+
+.chat-folder-rename-confirm:hover {
+    background: rgba(22, 163, 74, 0.08);
+}
+
+.chat-folder-rename-cancel {
+    color: rgba(55, 53, 47, 0.4);
+}
+
+.chat-folder-rename-cancel:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+/* ============================================
+   Context Menu
+   ============================================ */
+
+.chat-folder-context-menu {
+    min-width: 140px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 4px;
+    animation: contextMenuFadeIn 0.1s ease;
+}
+
+@keyframes contextMenuFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.chat-folder-context-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgb(55, 53, 47);
+    text-align: left;
+    transition: background 0.1s ease;
+    line-height: 1.4;
+}
+
+.chat-folder-context-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-folder-context-item-danger {
+    color: #dc2626;
+}
+
+.chat-folder-context-item-danger:hover {
+    background: rgba(220, 38, 38, 0.06);
+}
+
+/* Divider inside context menu */
+.chat-folder-context-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.06);
+    margin: 3px 4px;
+}
+
+/* Expandable "Move to folder" row */
+.chat-folder-context-item-expandable {
+    justify-content: flex-start;
+}
+
+/* Folder sub-list inside context menu */
+.chat-folder-context-folder-list {
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid rgba(0, 0, 0, 0.06);
+    margin: 2px 4px;
+}
+
+.chat-folder-context-folder-option {
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+}
