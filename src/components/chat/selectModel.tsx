@@ -1,4 +1,4 @@
-import type { Model } from "../../types/chat";
+import type { Model } from "../../types/model";
 import "./selectModel.css";
 
 interface SelectModelProps {

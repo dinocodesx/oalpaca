@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { Model } from "../../types/chat";
+import type { Model } from "../../types/model";
 import SelectModel from "./selectModel";
 import "./chatBox.css";
 
