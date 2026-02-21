@@ -16,18 +16,51 @@ function App() {
     currentChatId,
     streamingContent,
     error,
-    chatHistory,
     sidebarOpen,
     hasMessages,
 
+    // Workspace
+    workspaces,
+    activeWorkspace,
+
+    // Folders
+    folders,
+    looseChats,
+    chatsByFolder,
+
+    // Search
+    searchQuery,
+    searchResults,
+
+    // Setters
     setInputValue,
     setSelectedModel,
     setError,
     setSidebarOpen,
 
+    // Chat actions
     sendMessage,
     startNewChat,
     loadChat,
+    renameChatAction,
+    deleteChatAction,
+
+    // Workspace actions
+    switchWorkspace,
+    createNewWorkspace,
+    renameWorkspaceAction,
+    deleteWorkspaceAction,
+
+    // Folder actions
+    createNewFolder,
+    renameFolderAction,
+    deleteFolderAction,
+    moveChatToFolderAction,
+    removeChatFromFolderAction,
+
+    // Search actions
+    searchChats,
+    clearSearch,
   } = useChat();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,11 +94,36 @@ function App() {
       {/* Left sidebar */}
       <LeftSidebar
         isOpen={sidebarOpen}
-        chatHistory={chatHistory}
         currentChatId={currentChatId}
         onNewChat={startNewChat}
         onLoadChat={loadChat}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
+        // Workspace
+        workspaces={workspaces}
+        activeWorkspace={activeWorkspace}
+        onSwitchWorkspace={switchWorkspace}
+        onCreateWorkspace={createNewWorkspace}
+        onRenameWorkspace={renameWorkspaceAction}
+        onDeleteWorkspace={deleteWorkspaceAction}
+        // Folders
+        folders={folders}
+        looseChats={looseChats}
+        chatsByFolder={chatsByFolder}
+        onCreateFolder={createNewFolder}
+        onRenameFolder={renameFolderAction}
+        onDeleteFolder={deleteFolderAction}
+        onMoveToFolder={moveChatToFolderAction}
+        onRemoveChatFromFolder={removeChatFromFolderAction}
+        // Chat CRUD
+        onRenameChat={renameChatAction}
+        onDeleteChat={deleteChatAction}
+        // Search
+        searchQuery={searchQuery}
+        searchResults={searchResults}
+        onSearch={searchChats}
+        onClearSearch={clearSearch}
+        // Models (for settings)
+        models={models}
       />
 
       {/* Main content */}
@@ -75,21 +133,21 @@ function App() {
           <button
             className="menu-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            title="Toggle sidebar"
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
+            {/* Sidebar panel icon */}
             <svg
               width="20"
               height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
             </svg>
           </button>
           <div className="top-bar-spacer" />
