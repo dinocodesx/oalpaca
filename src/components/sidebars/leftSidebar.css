@@ -1,0 +1,252 @@
+/* ============================================
+   Left Sidebar — Semi-transparent Notion style
+   ============================================ */
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 19;
+    animation: overlayFadeIn 0.2s ease;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.left-sidebar {
+    width: var(--sidebar-width, 260px);
+    min-width: var(--sidebar-width, 260px);
+    height: 100%;
+    background: rgba(247, 247, 245, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    overflow: hidden;
+    transition:
+        transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        opacity 0.2s ease;
+    user-select: none;
+}
+
+/* Desktop: slide in/out */
+@media (min-width: 769px) {
+    .left-sidebar {
+        transform: translateX(-100%);
+        opacity: 0;
+        pointer-events: none;
+        position: relative;
+        margin-right: calc(-1 * var(--sidebar-width, 260px));
+    }
+
+    .left-sidebar.left-sidebar-open {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+        margin-right: 0;
+    }
+}
+
+/* Mobile: overlay from left */
+@media (max-width: 768px) {
+    .left-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .left-sidebar.left-sidebar-open {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* ============================================
+   Workspace Header
+   ============================================ */
+
+.sidebar-workspace {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 12px 12px 14px;
+    min-height: 46px;
+    flex-shrink: 0;
+}
+
+.workspace-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.workspace-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    color: rgba(55, 53, 47, 0.65);
+}
+
+.workspace-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgb(55, 53, 47);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-new-chat-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: rgba(55, 53, 47, 0.45);
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-new-chat-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 2px 8px 4px;
+    flex-shrink: 0;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    padding: 5px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: rgba(55, 53, 47, 0.65);
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+.sidebar-nav-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgb(55, 53, 47);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+    font-weight: 500;
+}
+
+.sidebar-nav-item svg {
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+/* ============================================
+   Section (Recent chats, etc.)
+   ============================================ */
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sidebar-section-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 10px 4px;
+    flex-shrink: 0;
+}
+
+.sidebar-section-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(55, 53, 47, 0.45);
+    letter-spacing: 0.02em;
+}
+
+.sidebar-section-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 8px;
+}
+
+.sidebar-section-list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.sidebar-section-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-section-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 9999px;
+}
+
+.sidebar-section-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-empty {
+    padding: 16px 10px;
+    text-align: center;
+    color: rgba(55, 53, 47, 0.35);
+    font-size: 13px;
+}
+
+/* ============================================
+   Bottom spacer
+   ============================================ */
+
+.sidebar-spacer {
+    flex-shrink: 0;
+    height: 12px;
+}

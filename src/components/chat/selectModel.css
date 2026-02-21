@@ -1,0 +1,66 @@
+/* ============================================
+   Model Selector — Inline native select in chat input
+   ============================================ */
+
+.select-model {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.select-model-native {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(55, 53, 47, 0.65);
+    cursor: pointer;
+    outline: none;
+    padding: 3px 20px 3px 6px;
+    border-radius: 5px;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+    max-width: 160px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.select-model-native:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgb(55, 53, 47);
+}
+
+.select-model-native:focus {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgb(55, 53, 47);
+}
+
+.select-model-native:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.select-model-native:disabled:hover {
+    background: transparent;
+    color: rgba(55, 53, 47, 0.65);
+}
+
+.select-model-chevron {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(55, 53, 47, 0.4);
+}

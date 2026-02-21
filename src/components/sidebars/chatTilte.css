@@ -1,0 +1,49 @@
+.chat-title-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.chat-title-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-title-item.active {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.chat-title-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: rgba(55, 53, 47, 0.45);
+}
+
+.chat-title-text {
+    font-size: 14px;
+    color: rgba(55, 53, 47, 0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-title-item:hover .chat-title-text,
+.chat-title-item.active .chat-title-text {
+    color: rgb(55, 53, 47);
+}
