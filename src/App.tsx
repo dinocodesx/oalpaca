@@ -1,120 +1,148 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useRef, useCallback } from "react";
+import { useChat } from "./hooks/useChat";
+import LeftSidebar from "./components/sidebars/leftSidebar";
+import UserMessage from "./components/chat/userMessage";
+import AssistantMessage from "./components/chat/assistantMessage";
+import ChatBox from "./components/chat/chatBox";
 import "./App.css";
-import ListOfModels from "./screens/settings/models/listModels";
-
-interface ModelDetails {
-  format: string;
-  family: string;
-  families: string[];
-  parameter_size: string;
-  quantization_level: string;
-}
-
-interface Model {
-  name: string;
-  model: string;
-  modified_at: string;
-  size: number;
-  digest: string;
-  details: ModelDetails;
-}
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-  const [models, setModels] = useState<Model[]>([]);
-  const [showModels, setShowModels] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    messages,
+    inputValue,
+    models,
+    selectedModel,
+    isStreaming,
+    currentChatId,
+    streamingContent,
+    error,
+    chatHistory,
+    sidebarOpen,
+    hasMessages,
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+    setInputValue,
+    setSelectedModel,
+    setError,
+    setSidebarOpen,
 
-  async function fetchModels() {
-    setLoading(true);
-    setError("");
-    try {
-      const result = await invoke<Model[]>("list_ollama_models");
-      setModels(result);
-      setShowModels(true);
-    } catch (err) {
-      setError(err as string);
-      console.error("Failed to fetch models:", err);
-    } finally {
-      setLoading(false);
+    sendMessage,
+    startNewChat,
+    loadChat,
+  } = useChat();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, streamingContent, scrollToBottom]);
+
+  const handleSend = () => {
+    sendMessage(inputValue);
+  };
+
+  // Build the interleaved message list: user messages shown as headings,
+  // assistant messages rendered with markdown
+  let userIndex = 0;
+  const renderedMessages = messages.map((msg, idx) => {
+    if (msg.role === "user") {
+      const isFirst = userIndex === 0;
+      userIndex++;
+      return <UserMessage key={idx} message={msg} isFirst={isFirst} />;
     }
-  }
-
-  function goBack() {
-    setShowModels(false);
-  }
-
-  if (showModels) {
-    return <ListOfModels models={models} onBack={goBack} />;
-  }
+    return <AssistantMessage key={idx} content={msg.content} />;
+  });
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div className="app-container">
+      {/* Left sidebar */}
+      <LeftSidebar
+        isOpen={sidebarOpen}
+        chatHistory={chatHistory}
+        currentChatId={currentChatId}
+        onNewChat={startNewChat}
+        onLoadChat={loadChat}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-
-      <div className="row" style={{ marginTop: "20px" }}>
-        <button
-          onClick={fetchModels}
-          disabled={loading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#0078d4",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontSize: "16px",
-          }}
-        >
-          {loading ? "Loading..." : "Show Ollama Models"}
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ color: "red", marginTop: "10px" }}>
-          <p>Error: {error}</p>
-          <p>Make sure Ollama is running on localhost:11434</p>
+      {/* Main content */}
+      <main className="main-content">
+        {/* Top bar */}
+        <div className="top-bar">
+          <button
+            className="menu-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title="Toggle sidebar"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div className="top-bar-spacer" />
         </div>
-      )}
-    </main>
+
+        {/* Chat area */}
+        <div className="chat-area">
+          {!hasMessages ? (
+            <div className="welcome-container">
+              <h1 className="welcome-heading">Welcome Back</h1>
+              <p className="welcome-subtext">
+                Start a conversation with your local AI model.
+              </p>
+            </div>
+          ) : (
+            <div className="messages-container">
+              {renderedMessages}
+
+              {/* Streaming assistant message */}
+              {isStreaming && (
+                <AssistantMessage
+                  content={streamingContent}
+                  isStreaming={true}
+                />
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Error display */}
+        {error && (
+          <div className="error-banner">
+            <span>{error}</span>
+            <button className="error-dismiss" onClick={() => setError(null)}>
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Chat input */}
+        <ChatBox
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          onSend={handleSend}
+          models={models}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+          isStreaming={isStreaming}
+        />
+      </main>
+    </div>
   );
 }
 
