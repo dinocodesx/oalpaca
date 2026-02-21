@@ -5,6 +5,7 @@ use tauri::Emitter;
 use super::chat_storage::{
     create_new_chat, load_chat_data, save_chat_data, update_chat_timestamp, ChatData, ChatMessage,
 };
+use crate::api::workspace::workspace_storage::load_workspaces_index;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct OllamaChatRequest {
@@ -60,13 +61,22 @@ pub async fn send_chat_message(
     chat_id: Option<String>,
     model: String,
     message: String,
+    workspace_id: Option<String>,
 ) -> Result<String, String> {
     // Determine if this is a new chat or an existing one
     let (resolved_chat_id, mut chat_data) = if let Some(ref id) = chat_id {
         let data = load_chat_data(id)?;
         (id.clone(), data)
     } else {
-        let meta = create_new_chat(&model, &message)?;
+        // Resolve workspace_id: use provided, or fall back to active workspace
+        let ws_id = match workspace_id {
+            Some(ref id) if !id.is_empty() => id.clone(),
+            _ => {
+                let ws_index = load_workspaces_index()?;
+                ws_index.active_workspace_id
+            }
+        };
+        let meta = create_new_chat(&model, &message, &ws_id, None)?;
         (meta.id, ChatData { messages: vec![] })
     };
 
