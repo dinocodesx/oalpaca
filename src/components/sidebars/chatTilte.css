@@ -1,39 +1,79 @@
+/* ============================================
+   Chat Title Wrapper (needed for relative positioning
+   of the folder picker dropdown)
+   ============================================ */
+
+.chat-title-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* ============================================
+   Chat Title Item — Sidebar chat entry
+   ============================================ */
+
 .chat-title-item {
     display: flex;
     align-items: center;
     width: 100%;
     text-align: left;
-    padding: 6px 12px;
+    padding: 5px 8px 5px 6px;
     border: none;
     background: transparent;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.15s ease;
-    gap: 8px;
+    transition: background 0.12s ease;
+    gap: 6px;
     text-decoration: none;
     color: inherit;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    position: relative;
 }
 
 .chat-title-item:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
-.chat-title-item.active {
+.chat-title-item.chat-title-active {
     background: rgba(0, 0, 0, 0.06);
 }
+
+/* Dragging state on the wrapper div */
+.chat-title-wrapper-dragging {
+    opacity: 0.4;
+}
+
+/* Drag-source grab cursor on the wrapper div */
+.chat-title-wrapper[draggable="true"] {
+    cursor: grab;
+}
+
+.chat-title-wrapper[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+/* ============================================
+   Chat Icon
+   ============================================ */
 
 .chat-title-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    color: rgba(55, 53, 47, 0.45);
+    width: 14px;
+    height: 14px;
+    color: rgba(55, 53, 47, 0.35);
 }
 
+/* ============================================
+   Chat Title Text
+   ============================================ */
+
 .chat-title-text {
-    font-size: 14px;
+    font-size: 13px;
     color: rgba(55, 53, 47, 0.65);
     white-space: nowrap;
     overflow: hidden;
@@ -41,9 +81,311 @@
     line-height: 1.4;
     flex: 1;
     min-width: 0;
+    transition: color 0.12s ease;
 }
 
 .chat-title-item:hover .chat-title-text,
-.chat-title-item.active .chat-title-text {
+.chat-title-item.chat-title-active .chat-title-text {
     color: rgb(55, 53, 47);
+}
+
+.chat-title-item.chat-title-active .chat-title-text {
+    font-weight: 500;
+}
+
+/* ============================================
+   Hover-reveal Actions (rename / delete)
+   ============================================ */
+
+.chat-title-actions {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.chat-title-item:hover .chat-title-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.chat-title-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: rgba(55, 53, 47, 0.4);
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
+    flex-shrink: 0;
+}
+
+.chat-title-action-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+.chat-title-action-btn-active {
+    background: rgba(35, 131, 226, 0.1) !important;
+    color: rgba(35, 131, 226, 0.9) !important;
+}
+
+.chat-title-action-btn-danger:hover {
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
+}
+
+/* ============================================
+   Inline Rename Row
+   ============================================ */
+
+.chat-title-rename-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 6px;
+    width: 100%;
+}
+
+.chat-title-rename-input {
+    flex: 1;
+    min-width: 0;
+    padding: 3px 7px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgb(55, 53, 47);
+    background: white;
+    outline: none;
+    line-height: 1.4;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.chat-title-rename-input:focus {
+    border-color: rgba(35, 131, 226, 0.5);
+    box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.chat-title-rename-input::placeholder {
+    color: rgba(55, 53, 47, 0.35);
+}
+
+.chat-title-rename-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
+}
+
+.chat-title-rename-confirm {
+    color: #16a34a;
+}
+
+.chat-title-rename-confirm:hover {
+    background: rgba(22, 163, 74, 0.08);
+}
+
+.chat-title-rename-cancel {
+    color: rgba(55, 53, 47, 0.4);
+}
+
+.chat-title-rename-cancel:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+/* ============================================
+   Context Menu (right-click)
+   ============================================ */
+
+.chat-title-context-menu {
+    min-width: 140px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 4px;
+    animation: chatTitleContextFadeIn 0.1s ease;
+}
+
+@keyframes chatTitleContextFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.chat-title-context-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgb(55, 53, 47);
+    text-align: left;
+    transition: background 0.1s ease;
+    line-height: 1.4;
+}
+
+.chat-title-context-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-title-context-item-danger {
+    color: #dc2626;
+}
+
+.chat-title-context-item-danger:hover {
+    background: rgba(220, 38, 38, 0.06);
+}
+
+/* Divider inside context menu */
+.chat-title-context-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.06);
+    margin: 3px 4px;
+}
+
+/* Expandable "Move to folder" row */
+.chat-title-context-item-expandable {
+    justify-content: flex-start;
+}
+
+.chat-title-context-expand-arrow {
+    flex-shrink: 0;
+}
+
+/* Folder list sub-section inside context menu */
+.chat-title-context-folder-list {
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid rgba(0, 0, 0, 0.06);
+    margin: 2px 4px;
+}
+
+.chat-title-context-folder-option {
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+}
+
+.chat-title-context-folder-empty {
+    padding: 5px 10px;
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.35);
+    font-style: italic;
+}
+
+/* ============================================
+   Folder Picker Dropdown (from hover button)
+   ============================================ */
+
+.chat-title-folder-picker {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 9999;
+    min-width: 160px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.02);
+    padding: 4px;
+    animation: chatTitleFolderPickerFadeIn 0.12s ease;
+}
+
+@keyframes chatTitleFolderPickerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.chat-title-folder-picker-header {
+    padding: 4px 10px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(55, 53, 47, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 3px;
+}
+
+.chat-title-folder-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: rgb(55, 53, 47);
+    text-align: left;
+    transition: background 0.1s ease;
+    line-height: 1.4;
+}
+
+.chat-title-folder-picker-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-title-folder-picker-remove {
+    color: rgba(55, 53, 47, 0.55);
+}
+
+.chat-title-folder-picker-remove:hover {
+    background: rgba(220, 38, 38, 0.06);
+    color: #dc2626;
+}
+
+.chat-title-folder-picker-empty {
+    padding: 6px 10px;
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.35);
+    font-style: italic;
 }
