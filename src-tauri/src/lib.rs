@@ -1,10 +1,13 @@
 mod api;
 
+use api::chats::chat_storage::get_all_chats;
+use api::chats::chat_storage::get_chat_messages;
+use api::chats::generate_chat_message::send_chat_message;
 use api::models::copy_model::copy_model;
 use api::models::create_model::create_model;
 use api::models::delete_model::delete_model;
 use api::models::list_models::list_models;
-use api::models::list_of_running_models::list_of_running_models;
+use api::models::list_running_models::list_running_models;
 use api::models::pull_model::pull_model;
 use api::models::push_model::push_model;
 use api::models::show_model_details::show_model_details;
@@ -15,13 +18,16 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             list_models,
-            list_of_running_models,
+            list_running_models,
             show_model_details,
             create_model,
             copy_model,
             pull_model,
             push_model,
-            delete_model
+            delete_model,
+            send_chat_message,
+            get_all_chats,
+            get_chat_messages
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
