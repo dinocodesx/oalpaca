@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Response from Ollama's /api/create endpoint indicating success status.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreateModelResponse {
     pub status: String,
 }
 
+/// Tauri command: Creates a new model by copying a base model with optional system prompt. Calls Ollama's /api/create endpoint.
 #[tauri::command]
 pub async fn create_model(
     from: String,

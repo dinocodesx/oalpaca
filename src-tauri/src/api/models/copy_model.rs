@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Response from Ollama's /api/copy endpoint indicating success status.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CopyModelResponse {
     pub status: String,
 }
 
+/// Tauri command: Copies a model to create a new model with a different name. Calls Ollama's /api/copy endpoint.
 #[tauri::command]
 pub async fn copy_model(source: String, destination: String) -> Result<CopyModelResponse, String> {
     let client = reqwest::Client::new();

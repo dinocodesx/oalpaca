@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Response from Ollama's /api/pull endpoint indicating success status.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PullModelResponse {
     pub status: String,
 }
 
+/// Tauri command: Pulls a model from the Ollama registry to local storage. Calls Ollama's /api/pull endpoint.
 #[tauri::command]
 pub async fn pull_model(model: String) -> Result<PullModelResponse, String> {
     let client = reqwest::Client::new();

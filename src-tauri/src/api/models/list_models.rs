@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Details about a model including format, family, parameter size, and quantization level.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelDetails {
     pub format: String,
@@ -9,6 +10,7 @@ pub struct ModelDetails {
     pub quantization_level: String,
 }
 
+/// Represents a local model available in Ollama with name, size, modified date, and details.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Model {
     pub name: String,
@@ -19,11 +21,13 @@ pub struct Model {
     pub details: ModelDetails,
 }
 
+/// Response wrapper containing list of available models from Ollama's /api/tags endpoint.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelsResponse {
     pub models: Vec<Model>,
 }
 
+/// Tauri command: Fetches all available models from Ollama. Called from frontend to display model list in sidebar.
 #[tauri::command]
 pub async fn list_models() -> Result<Vec<Model>, String> {
     let client = reqwest::Client::new();

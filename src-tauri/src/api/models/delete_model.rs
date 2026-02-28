@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Response from Ollama's /api/delete endpoint indicating success status.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeleteModelResponse {
     pub status: String,
 }
 
+/// Tauri command: Deletes a model from local Ollama storage. Calls Ollama's /api/delete endpoint.
 #[tauri::command]
 pub async fn delete_model(model: String) -> Result<DeleteModelResponse, String> {
     let client = reqwest::Client::new();

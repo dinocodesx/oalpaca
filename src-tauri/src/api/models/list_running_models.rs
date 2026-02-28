@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Details about a running model including parent model, format, family, parameter size, and quantization level.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RunningModelDetails {
     pub parent_model: String,
@@ -10,6 +11,7 @@ pub struct RunningModelDetails {
     pub quantization_level: String,
 }
 
+/// Represents a currently running model loaded in Ollama with name, size, expiry time, and VRAM info.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RunningModel {
     pub name: String,
@@ -22,11 +24,13 @@ pub struct RunningModel {
     pub context_length: u64,
 }
 
+/// Response wrapper containing list of running models from Ollama's /api/ps endpoint.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RunningModelsResponse {
     pub models: Vec<RunningModel>,
 }
 
+/// Tauri command: Fetches all currently running models from Ollama. Called from frontend to display active models in models panel.
 #[tauri::command]
 pub async fn list_running_models() -> Result<Vec<RunningModel>, String> {
     let client = reqwest::Client::new();

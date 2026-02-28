@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
+/// Detailed information about a model including parent model, format, family, parameter size, and quantization level.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ShowModelDetails {
     pub parent_model: String,
@@ -12,6 +13,7 @@ pub struct ShowModelDetails {
     pub quantization_level: String,
 }
 
+/// Full response from Ollama's /api/show endpoint containing model parameters, license, capabilities, and detailed info.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ShowModelResponse {
     pub parameters: Option<String>,
@@ -22,6 +24,7 @@ pub struct ShowModelResponse {
     pub model_info: HashMap<String, Value>,
 }
 
+/// Tauri command: Fetches detailed information about a specific model. Calls Ollama's /api/show endpoint.
 #[tauri::command]
 pub async fn show_model_details(model: String) -> Result<ShowModelResponse, String> {
     let client = reqwest::Client::new();
