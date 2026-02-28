@@ -1,3 +1,4 @@
+// Represents detailed information about a model - used in model info display
 export interface ModelDetails {
   format: string;
   family: string;
@@ -6,6 +7,7 @@ export interface ModelDetails {
   quantization_level: string;
 }
 
+// Represents an Ollama model - used in model selection dropdown and list
 export interface Model {
   name: string;
   model: string;

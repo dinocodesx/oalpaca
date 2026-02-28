@@ -1,3 +1,4 @@
+// Represents folder metadata for sidebar folder listing - used in sidebar folder components
 export interface FolderMeta {
   id: string;
   name: string;
