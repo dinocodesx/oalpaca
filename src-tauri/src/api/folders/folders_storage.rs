@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+/// Metadata for a folder containing id, name, workspace_id, list of chat IDs, tags, and timestamps.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FolderMeta {
     pub id: String,
@@ -13,11 +14,13 @@ pub struct FolderMeta {
     pub last_updated_at: String,
 }
 
+/// The root structure for the folders index file (folders.json). Contains list of all FolderMeta entries.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FoldersIndex {
     pub folders: Vec<FolderMeta>,
 }
 
+/// Returns the path to the .data directory, creating it if it doesn't exist. Used internally for all file operations.
 fn get_data_dir() -> Result<PathBuf, String> {
     let data_dir = PathBuf::from("../.data");
     if !data_dir.exists() {
@@ -27,15 +30,18 @@ fn get_data_dir() -> Result<PathBuf, String> {
     Ok(data_dir)
 }
 
+/// Returns the path to the folders.json index file. Used internally for loading/saving folders.
 fn get_folders_index_path() -> Result<PathBuf, String> {
     let data_dir = get_data_dir()?;
     Ok(data_dir.join("folders.json"))
 }
 
+/// Returns the current UTC time as an ISO 8601 RFC3339 string. Used for setting timestamps on folder metadata.
 fn now_iso() -> String {
     chrono::Utc::now().to_rfc3339()
 }
 
+/// Loads the folders index from folders.json, creating it with an empty list if it doesn't exist. Used by Tauri commands to get all folder metadata.
 pub fn load_folders_index() -> Result<FoldersIndex, String> {
     let index_path = get_folders_index_path()?;
     if !index_path.exists() {
@@ -48,6 +54,7 @@ pub fn load_folders_index() -> Result<FoldersIndex, String> {
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse folders index: {}", e))
 }
 
+/// Saves the folders index to folders.json. Used whenever folder metadata is modified (create, rename, delete, etc.).
 pub fn save_folders_index(index: &FoldersIndex) -> Result<(), String> {
     let index_path = get_folders_index_path()?;
     let content = serde_json::to_string_pretty(index)
@@ -55,13 +62,14 @@ pub fn save_folders_index(index: &FoldersIndex) -> Result<(), String> {
     fs::write(&index_path, content).map_err(|e| format!("Failed to write folders index: {}", e))
 }
 
-/// Delete all folders belonging to a given workspace (called when a workspace is deleted).
+/// Deletes all folders belonging to a workspace and removes them from the index. Called when a workspace is deleted.
 pub fn delete_folders_for_workspace(workspace_id: &str) -> Result<(), String> {
     let mut index = load_folders_index()?;
     index.folders.retain(|f| f.workspace_id != workspace_id);
     save_folders_index(&index)
 }
 
+/// Tauri command: Returns all folders for a specific workspace. Called from frontend to display folders in sidebar.
 #[tauri::command]
 pub async fn get_folders_for_workspace(workspace_id: String) -> Result<Vec<FolderMeta>, String> {
     let index = load_folders_index()?;
@@ -73,6 +81,7 @@ pub async fn get_folders_for_workspace(workspace_id: String) -> Result<Vec<Folde
     Ok(filtered)
 }
 
+/// Tauri command: Creates a new folder with the given name in a workspace. Called from frontend when user creates a new folder.
 #[tauri::command]
 pub async fn create_folder(workspace_id: String, name: String) -> Result<FolderMeta, String> {
     let trimmed = name.trim();
@@ -100,6 +109,7 @@ pub async fn create_folder(workspace_id: String, name: String) -> Result<FolderM
     Ok(folder)
 }
 
+/// Tauri command: Renames a folder with a new name. Called from frontend when user edits a folder name.
 #[tauri::command]
 pub async fn rename_folder(folder_id: String, new_name: String) -> Result<(), String> {
     let trimmed = new_name.trim();
@@ -122,6 +132,7 @@ pub async fn rename_folder(folder_id: String, new_name: String) -> Result<(), St
     save_folders_index(&index)
 }
 
+/// Tauri command: Deletes a folder and releases all its chats (sets their folder_id to None). Called from frontend when user deletes a folder.
 #[tauri::command]
 pub async fn delete_folder(folder_id: String) -> Result<(), String> {
     let mut index = load_folders_index()?;
@@ -147,6 +158,7 @@ pub async fn delete_folder(folder_id: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Tauri command: Adds a chat to a folder by updating both the folder's chat_ids and the chat's folder_id. Called from frontend when dragging a chat into a folder.
 #[tauri::command]
 pub async fn add_chat_to_folder(folder_id: String, chat_id: String) -> Result<(), String> {
     let mut index = load_folders_index()?;
@@ -172,6 +184,7 @@ pub async fn add_chat_to_folder(folder_id: String, chat_id: String) -> Result<()
     Ok(())
 }
 
+/// Tauri command: Removes a chat from a folder by updating both the folder's chat_ids and the chat's folder_id to None. Called from frontend when removing a chat from a folder.
 #[tauri::command]
 pub async fn remove_chat_from_folder_cmd(folder_id: String, chat_id: String) -> Result<(), String> {
     let mut index = load_folders_index()?;

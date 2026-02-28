@@ -7,6 +7,7 @@ use super::chat_storage::{
 };
 use crate::api::workspace::workspace_storage::load_workspaces_index;
 
+/// Request body sent to Ollama's /api/chat endpoint. Contains model name, messages history, and streaming flag.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct OllamaChatRequest {
     model: String,
@@ -14,12 +15,14 @@ struct OllamaChatRequest {
     stream: bool,
 }
 
+/// Represents a single message in the Ollama chat format (role and content).
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct OllamaChatMessage {
     role: String,
     content: String,
 }
 
+/// Represents a single chunk in Ollama's streaming response (NDJSON format). Contains message content and done flag.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct OllamaStreamChunk {
     model: Option<String>,
@@ -35,12 +38,14 @@ struct OllamaStreamChunk {
     eval_duration: Option<u64>,
 }
 
+/// Represents the message field within an Ollama stream chunk.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct OllamaChunkMessage {
     role: Option<String>,
     content: Option<String>,
 }
 
+/// Event emitted to frontend during streaming response. Contains chat_id, content chunk, done flag, and optional done_reason.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatStreamEvent {
     pub chat_id: String,
@@ -49,12 +54,15 @@ pub struct ChatStreamEvent {
     pub done_reason: Option<String>,
 }
 
+/// Error event emitted to frontend when Ollama request fails. Contains chat_id and error message.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChatStreamError {
     pub chat_id: String,
     pub error: String,
 }
 
+/// Tauri command: Sends a chat message to Ollama and streams the response back to the frontend.
+/// Handles both new chats and continuing existing conversations. Creates new chat if chat_id is None.
 #[tauri::command]
 pub async fn send_chat_message(
     app: tauri::AppHandle,
