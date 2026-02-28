@@ -3,18 +3,6 @@
     width: 100%;
 }
 
-.chat-title-wrapper-dragging {
-    opacity: 0.4;
-}
-
-.chat-title-wrapper[draggable="true"] {
-    cursor: grab;
-}
-
-.chat-title-wrapper[draggable="true"]:active {
-    cursor: grabbing;
-}
-
 .chat-title-item {
     display: flex;
     align-items: center;
@@ -124,6 +112,8 @@
     color: #dc2626;
 }
 
+/* ——— Rename row ——— */
+
 .chat-title-rename-row {
     display: flex;
     align-items: center;
@@ -191,8 +181,10 @@
     color: rgb(55, 53, 47);
 }
 
+/* ——— Context menu ——— */
+
 .chat-title-context-menu {
-    min-width: 140px;
+    min-width: 160px;
     background: white;
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 8px;
@@ -244,58 +236,54 @@
     background: rgba(220, 38, 38, 0.06);
 }
 
-.chat-title-context-item-expandable {
-    justify-content: flex-start;
-}
-
-.chat-title-context-expand-arrow {
-    flex-shrink: 0;
-}
-
 .chat-title-context-divider {
     height: 1px;
     background: rgba(0, 0, 0, 0.06);
     margin: 3px 4px;
 }
 
-.chat-title-context-folder-list {
-    padding: 2px 0 2px 8px;
-    border-left: 2px solid rgba(0, 0, 0, 0.06);
-    margin: 2px 4px;
-}
+/* ——— Folder modal ——— */
 
-.chat-title-context-folder-option {
-    padding: 5px 8px !important;
-    font-size: 12px !important;
-}
-
-.chat-title-context-folder-empty {
-    padding: 5px 10px;
-    font-size: 12px;
-    color: rgba(55, 53, 47, 0.35);
-    font-style: italic;
-}
-
-.chat-title-folder-picker {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 4px);
+.folder-modal-backdrop {
+    position: fixed;
+    inset: 0;
     z-index: 9999;
-    min-width: 160px;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.12),
-        0 0 0 1px rgba(0, 0, 0, 0.02);
-    padding: 4px;
-    animation: chatTitleFolderPickerFadeIn 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.28);
+    animation: folderModalBackdropFadeIn 0.15s ease;
 }
 
-@keyframes chatTitleFolderPickerFadeIn {
+@keyframes folderModalBackdropFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-4px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.folder-modal {
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 64px);
+    background: white;
+    border-radius: 10px;
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.14),
+        0 0 0 1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    outline: none;
+    animation: folderModalSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes folderModalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
     }
     to {
         opacity: 1;
@@ -303,51 +291,118 @@
     }
 }
 
-.chat-title-folder-picker-header {
-    padding: 4px 10px 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(55, 53, 47, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    margin-bottom: 3px;
-}
-
-.chat-title-folder-picker-item {
+.folder-modal-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 6px 10px;
+    justify-content: space-between;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    flex-shrink: 0;
+}
+
+.folder-modal-title-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: rgb(55, 53, 47);
+}
+
+.folder-modal-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(55, 53, 47);
+    line-height: 1.4;
+}
+
+.folder-modal-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
     border: none;
     background: transparent;
     border-radius: 5px;
+    cursor: pointer;
+    color: rgba(55, 53, 47, 0.4);
+    flex-shrink: 0;
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
+}
+
+.folder-modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgb(55, 53, 47);
+}
+
+.folder-modal-chat-name {
+    padding: 8px 14px 0;
+    font-size: 12px;
+    color: rgba(55, 53, 47, 0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.folder-modal-body {
+    padding: 6px 6px 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.folder-modal-section-label {
+    padding: 6px 10px 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(55, 53, 47, 0.38);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.folder-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.folder-modal-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 7px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
     cursor: pointer;
     font-family: inherit;
     font-size: 13px;
     color: rgb(55, 53, 47);
     text-align: left;
-    transition: background 0.1s ease;
     line-height: 1.4;
+    transition: background 0.1s ease;
 }
 
-.chat-title-folder-picker-item:hover {
+.folder-modal-option:hover {
     background: rgba(0, 0, 0, 0.04);
 }
 
-.chat-title-folder-picker-remove {
+.folder-modal-option-remove {
     color: rgba(55, 53, 47, 0.55);
+    margin-bottom: 2px;
 }
 
-.chat-title-folder-picker-remove:hover {
+.folder-modal-option-remove:hover {
     background: rgba(220, 38, 38, 0.06);
     color: #dc2626;
 }
 
-.chat-title-folder-picker-empty {
-    padding: 6px 10px;
-    font-size: 12px;
-    color: rgba(55, 53, 47, 0.35);
-    font-style: italic;
+.folder-modal-empty {
+    padding: 16px 12px;
+    font-size: 13px;
+    color: rgba(55, 53, 47, 0.38);
+    text-align: center;
+    line-height: 1.5;
 }

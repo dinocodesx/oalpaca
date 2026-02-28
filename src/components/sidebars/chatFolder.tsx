@@ -70,8 +70,6 @@ export default function ChatFolder({
     y: number;
   } | null>(null);
   const [contextFolderExpanded, setContextFolderExpanded] = useState(false);
-  /** True when a chat is being dragged over this folder (drop target). */
-  const [isDragOver, setIsDragOver] = useState(false);
 
   const renameInputRef = useRef<HTMLInputElement>(null);
   const chatRenameInputRef = useRef<HTMLInputElement>(null);
@@ -119,7 +117,7 @@ export default function ChatFolder({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [contextMenu]);
 
-  // Keep context menu within viewport when opened.
+  // Keep context menu within viewport when opened or when its content expands.
   useEffect(() => {
     if (!contextMenu) return;
     const el = contextMenuRef.current;
@@ -128,12 +126,18 @@ export default function ChatFolder({
     const rect = el.getBoundingClientRect();
     const maxX = window.innerWidth - margin - rect.width;
     const maxY = window.innerHeight - margin - rect.height;
-    const nextX = Math.min(Math.max(contextMenu.x, margin), Math.max(margin, maxX));
-    const nextY = Math.min(Math.max(contextMenu.y, margin), Math.max(margin, maxY));
+    const nextX = Math.min(
+      Math.max(contextMenu.x, margin),
+      Math.max(margin, maxX),
+    );
+    const nextY = Math.min(
+      Math.max(contextMenu.y, margin),
+      Math.max(margin, maxY),
+    );
     if (nextX !== contextMenu.x || nextY !== contextMenu.y) {
-      setContextMenu({ ...contextMenu, x: nextX, y: nextY });
+      setContextMenu((prev) => (prev ? { ...prev, x: nextX, y: nextY } : prev));
     }
-  }, [contextMenu]);
+  }, [contextMenu, contextFolderExpanded]);
 
   // ——— Handlers ———
   const handleFolderRename = useCallback(() => {
@@ -188,45 +192,6 @@ export default function ChatFolder({
       setContextMenu(null);
     },
     [contextMenu, folder.id, folder.name, chats, onDeleteFolder, onDeleteChat],
-  );
-
-  /** Folder as drop target: set drag-over state. */
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
-
-  /** Clear drag-over only when pointer leaves the drop zone (not when entering a child). */
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node))
-      setIsDragOver(false);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  }, []);
-
-  /** Move the dropped chat into this folder; expand folder so user sees the result. */
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragOver(false);
-      const chatId = e.dataTransfer.getData("text/plain");
-      if (!chatId || chats.some((c) => c.id === chatId)) return;
-      onMoveToFolder?.(chatId, folder.id);
-      setIsExpanded(true);
-    },
-    [chats, folder.id, onMoveToFolder],
-  );
-
-  /** Set drag data so drop targets can identify the chat. */
-  const handleChatDragStart = useCallback(
-    (e: React.DragEvent, chatId: string) => {
-      e.dataTransfer.setData("text/plain", chatId);
-      e.dataTransfer.effectAllowed = "move";
-    },
-    [],
   );
 
   const handleMoveToFolder = useCallback(
@@ -284,13 +249,7 @@ export default function ChatFolder({
           </button>
         </div>
       ) : (
-        <div
-          className={`chat-folder-drop-zone ${isDragOver ? "chat-folder-header-drag-over" : ""}`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
+        <div className="chat-folder-drop-zone">
           <button
             type="button"
             className="chat-folder-header"
@@ -303,11 +262,7 @@ export default function ChatFolder({
               height={14}
             />
             <span className="chat-folder-name">{folder.name}</span>
-            {isDragOver ? (
-              <span className="chat-folder-drop-hint">Drop here</span>
-            ) : (
-              <span className="chat-folder-count">{chats.length}</span>
-            )}
+            <span className="chat-folder-count">{chats.length}</span>
             <div className="chat-folder-actions">
               <button
                 type="button"
@@ -383,8 +338,6 @@ export default function ChatFolder({
                     onClick={() => onLoadChat(chat.id)}
                     onContextMenu={(e) => handleContextMenu(e, "chat", chat.id)}
                     title={chat.chat_title}
-                    draggable
-                    onDragStart={(e) => handleChatDragStart(e, chat.id)}
                   >
                     <ChatBubbleIcon
                       className="chat-folder-chat-icon"
@@ -428,7 +381,7 @@ export default function ChatFolder({
       )}
 
       {/* Right-click context menu: Rename, Remove from folder, Move to folder, Delete */}
-      {contextMenu && (
+      {contextMenu &&
         createPortal(
           <div
             ref={contextMenuRef}
@@ -539,8 +492,7 @@ export default function ChatFolder({
             </button>
           </div>,
           document.body,
-        )
-      )}
+        )}
     </div>
   );
 }

@@ -2,18 +2,6 @@
     margin-bottom: 2px;
 }
 
-.chat-folder-drop-zone {
-    border-radius: 6px;
-}
-
-.chat-folder-chat-item[draggable="true"] {
-    cursor: grab;
-}
-
-.chat-folder-chat-item[draggable="true"]:active {
-    cursor: grabbing;
-}
-
 .chat-folder-header {
     display: flex;
     align-items: center;
@@ -35,21 +23,6 @@
 
 .chat-folder-header:hover {
     background: rgba(0, 0, 0, 0.04);
-}
-
-.chat-folder-header-drag-over {
-    outline: 2px dashed rgba(35, 131, 226, 0.45);
-    outline-offset: -2px;
-    border-radius: 6px;
-    background: rgba(35, 131, 226, 0.07);
-}
-
-.chat-folder-header-drag-over .chat-folder-header {
-    background: transparent;
-}
-
-.chat-folder-header-drag-over .chat-folder-name {
-    color: rgba(35, 131, 226, 0.85) !important;
 }
 
 .chat-folder-chevron {
@@ -86,29 +59,6 @@
     padding: 0 4px;
     min-width: 16px;
     text-align: center;
-    transition: opacity 0.12s ease;
-}
-
-.chat-folder-header:hover .chat-folder-count {
-    opacity: 0;
-}
-
-.chat-folder-drop-hint {
-    font-size: 11px;
-    color: rgba(35, 131, 226, 0.75);
-    flex-shrink: 0;
-    padding: 0 4px;
-    font-weight: 500;
-    animation: dropHintPulse 0.8s ease infinite alternate;
-}
-
-@keyframes dropHintPulse {
-    from {
-        opacity: 0.6;
-    }
-    to {
-        opacity: 1;
-    }
 }
 
 .chat-folder-actions {

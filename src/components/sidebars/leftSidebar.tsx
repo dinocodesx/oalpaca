@@ -79,8 +79,6 @@ export default function LeftSidebar({
   const [showSettings, setShowSettings] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  /** True when a chat is being dragged over the "Recent" section (drop zone to remove from folder). */
-  const [isRecentDragOver, setIsRecentDragOver] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const newFolderInputRef = useRef<HTMLInputElement>(null);
@@ -113,35 +111,6 @@ export default function LeftSidebar({
       }
     },
     [onClearSearch],
-  );
-
-  /** Recent section as drop target: highlight when a chat is dragged over it. */
-  const handleRecentDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsRecentDragOver(true);
-  }, []);
-
-  /** Only clear drag-over when the pointer leaves the section (not when moving to a child). */
-  const handleRecentDragLeave = useCallback((e: React.DragEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsRecentDragOver(false);
-    }
-  }, []);
-
-  const handleRecentDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  }, []);
-
-  /** Drop a chat here to remove it from its folder (move to "loose" / Recent). */
-  const handleRecentDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsRecentDragOver(false);
-      const chatId = e.dataTransfer.getData("text/plain");
-      if (chatId) onRemoveChatFromFolder(chatId);
-    },
-    [onRemoveChatFromFolder],
   );
 
   return (
@@ -323,23 +292,11 @@ export default function LeftSidebar({
               </div>
             )}
 
-            {/* Recent: loose chats; also acts as drop zone to remove a chat from its folder */}
-            <div
-              className={`sidebar-section ${isRecentDragOver ? "sidebar-section-drag-over" : ""}`}
-              onDragEnter={handleRecentDragEnter}
-              onDragLeave={handleRecentDragLeave}
-              onDragOver={handleRecentDragOver}
-              onDrop={handleRecentDrop}
-            >
+            {/* Recent: loose chats */}
+            <div className="sidebar-section">
               <div className="sidebar-section-header">
                 <span className="sidebar-section-label">
-                  {isRecentDragOver ? (
-                    <span className="sidebar-section-drop-hint">
-                      Drop to remove from folder
-                    </span>
-                  ) : (
-                    "Recent"
-                  )}
+                  Recent
                 </span>
                 {folders.length === 0 && !isCreatingFolder && (
                   <button
@@ -354,13 +311,7 @@ export default function LeftSidebar({
               </div>
               <div className="sidebar-section-list">
                 {recentLooseChats.length === 0 ? (
-                  <div
-                    className={`sidebar-empty ${isRecentDragOver ? "sidebar-empty-drag-over" : ""}`}
-                  >
-                    {isRecentDragOver
-                      ? "Release to ungroup this chat"
-                      : "No conversations yet"}
-                  </div>
+                  <div className="sidebar-empty">No conversations yet</div>
                 ) : (
                   recentLooseChats.map((chat) => (
                     <ChatTitle
