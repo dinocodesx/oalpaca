@@ -2,11 +2,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./assistantMessage.css";
 
+// Props for the AssistantMessage component
 interface AssistantMessageProps {
   content: string;
   isStreaming?: boolean;
 }
 
+// Renders an assistant message with Markdown support. Shows typing indicator during streaming and streaming cursor.
 export default function AssistantMessage({
   content,
   isStreaming = false,

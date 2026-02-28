@@ -1,6 +1,7 @@
 import type { Model } from "../../types/model";
 import "./selectModel.css";
 
+// Props for the SelectModel component
 interface SelectModelProps {
   models: Model[];
   selectedModel: string;
@@ -8,6 +9,7 @@ interface SelectModelProps {
   disabled?: boolean;
 }
 
+// Dropdown component for selecting an Ollama model. Displays list of available models from Ollama API.
 export default function SelectModel({
   models,
   selectedModel,

@@ -3,6 +3,7 @@ import type { Model } from "../../types/model";
 import SelectModel from "./selectModel";
 import "./chatBox.css";
 
+// Props for the ChatBox component
 interface ChatBoxProps {
   inputValue: string;
   onInputChange: (value: string) => void;
@@ -13,6 +14,7 @@ interface ChatBoxProps {
   isStreaming: boolean;
 }
 
+// Main chat input component with textarea, model selector, and send button. Handles input changes, keyboard shortcuts, and sending messages.
 export default function ChatBox({
   inputValue,
   onInputChange,
@@ -24,6 +26,7 @@ export default function ChatBox({
 }: ChatBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Handles Enter key to send message, Shift+Enter for new line
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -31,6 +34,7 @@ export default function ChatBox({
     }
   };
 
+  // Updates input value and auto-resizes textarea height up to 180px
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onInputChange(e.target.value);
     const textarea = e.target;
@@ -38,6 +42,7 @@ export default function ChatBox({
     textarea.style.height = Math.min(textarea.scrollHeight, 180) + "px";
   };
 
+  /// Sends the message and resets textarea height
   const handleSendClick = () => {
     onSend();
     if (textareaRef.current) {
@@ -46,6 +51,7 @@ export default function ChatBox({
     }
   };
 
+  // Determines if send button should be enabled (non-empty input, not streaming, model selected)
   const canSend =
     inputValue.trim().length > 0 && !isStreaming && !!selectedModel;
 
