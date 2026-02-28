@@ -1,4 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
+import { useWorkspace } from "./hooks/useWorkspace";
+import { useFolder } from "./hooks/useFolder";
 import { useChat } from "./hooks/useChat";
 import LeftSidebar from "./components/sidebars/leftSidebar";
 import UserMessage from "./components/chat/userMessage";
@@ -6,7 +8,29 @@ import AssistantMessage from "./components/chat/assistantMessage";
 import ChatBox from "./components/chat/chatBox";
 import "./App.css";
 
+// Main application component - root component that orchestrates workspace, folder, and chat state
 function App() {
+  // Initialize workspace hook - manages workspaces list, active workspace, and workspace actions
+  const {
+    workspaces,
+    activeWorkspaceId,
+    activeWorkspace,
+    switchWorkspace,
+    createNewWorkspace,
+    renameWorkspaceAction,
+    deleteWorkspaceAction,
+  } = useWorkspace();
+
+  // Initialize folder hook - manages folders for the active workspace
+  const {
+    folders,
+    refreshFolders,
+    createNewFolder,
+    renameFolderAction,
+    deleteFolderAction,
+  } = useFolder(activeWorkspaceId);
+
+  // Initialize chat hook - manages messages, models, chat history, search, and sidebar state
   const {
     messages,
     inputValue,
@@ -18,67 +42,86 @@ function App() {
     error,
     sidebarOpen,
     hasMessages,
-
-    // Workspace
-    workspaces,
-    activeWorkspace,
-
-    // Folders
-    folders,
-    looseChats,
-    chatsByFolder,
-
-    // Search
     searchQuery,
     searchResults,
-
-    // Setters
+    looseChats,
+    chatsByFolder,
     setInputValue,
     setSelectedModel,
     setError,
     setSidebarOpen,
-
-    // Chat actions
     sendMessage,
     startNewChat,
     loadChat,
     renameChatAction,
     deleteChatAction,
-
-    // Workspace actions
-    switchWorkspace,
-    createNewWorkspace,
-    renameWorkspaceAction,
-    deleteWorkspaceAction,
-
-    // Folder actions
-    createNewFolder,
-    renameFolderAction,
-    deleteFolderAction,
     moveChatToFolderAction,
     removeChatFromFolderAction,
-
-    // Search actions
+    refreshChatHistory,
+    resetChatState,
     searchChats,
     clearSearch,
-  } = useChat();
+  } = useChat(activeWorkspaceId, { onChatListChange: refreshFolders });
 
+  // Ref for auto-scrolling to bottom of chat messages
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Scrolls the chat area to the bottom - used when new messages arrive
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  // Effect to auto-scroll when messages or streaming content changes
   useEffect(() => {
     scrollToBottom();
   }, [messages, streamingContent, scrollToBottom]);
 
+  // Handler to send message - called by ChatBox when user submits input
   const handleSend = () => {
     sendMessage(inputValue);
   };
 
-  // Build the interleaved message list: user messages shown as headings,
-  // assistant messages rendered with markdown
+  // Handler to switch workspace - resets chat state after switching
+  const handleSwitchWorkspace = useCallback(
+    async (workspaceId: string) => {
+      await switchWorkspace(workspaceId);
+      resetChatState();
+    },
+    [switchWorkspace, resetChatState]
+  );
+
+  // Handler to create new workspace - resets chat state after creation
+  const handleCreateNewWorkspace = useCallback(
+    async (name: string) => {
+      await createNewWorkspace(name);
+      resetChatState();
+    },
+    [createNewWorkspace, resetChatState]
+  );
+
+  // Handler to delete workspace - refreshes folders and chat history for new active workspace
+  const handleDeleteWorkspace = useCallback(
+    async (workspaceId: string) => {
+      const newWsId = await deleteWorkspaceAction(workspaceId);
+      if (newWsId) {
+        await refreshFolders(newWsId);
+        await refreshChatHistory(newWsId);
+      }
+      resetChatState();
+    },
+    [deleteWorkspaceAction, refreshFolders, refreshChatHistory, resetChatState]
+  );
+
+  // Handler to delete folder - refreshes chat history after deletion
+  const handleDeleteFolder = useCallback(
+    async (folderId: string) => {
+      await deleteFolderAction(folderId);
+      await refreshChatHistory();
+    },
+    [deleteFolderAction, refreshChatHistory]
+  );
+
+  // Maps chat messages to UserMessage or AssistantMessage components for rendering
   let userIndex = 0;
   const renderedMessages = messages.map((msg, idx) => {
     if (msg.role === "user") {
@@ -91,51 +134,42 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Left sidebar */}
       <LeftSidebar
         isOpen={sidebarOpen}
         currentChatId={currentChatId}
         onNewChat={startNewChat}
         onLoadChat={loadChat}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
-        // Workspace
         workspaces={workspaces}
         activeWorkspace={activeWorkspace}
-        onSwitchWorkspace={switchWorkspace}
-        onCreateWorkspace={createNewWorkspace}
+        onSwitchWorkspace={handleSwitchWorkspace}
+        onCreateWorkspace={handleCreateNewWorkspace}
         onRenameWorkspace={renameWorkspaceAction}
-        onDeleteWorkspace={deleteWorkspaceAction}
-        // Folders
+        onDeleteWorkspace={handleDeleteWorkspace}
         folders={folders}
         looseChats={looseChats}
         chatsByFolder={chatsByFolder}
         onCreateFolder={createNewFolder}
         onRenameFolder={renameFolderAction}
-        onDeleteFolder={deleteFolderAction}
+        onDeleteFolder={handleDeleteFolder}
         onMoveToFolder={moveChatToFolderAction}
         onRemoveChatFromFolder={removeChatFromFolderAction}
-        // Chat CRUD
         onRenameChat={renameChatAction}
         onDeleteChat={deleteChatAction}
-        // Search
         searchQuery={searchQuery}
         searchResults={searchResults}
         onSearch={searchChats}
         onClearSearch={clearSearch}
-        // Models (for settings)
         models={models}
       />
 
-      {/* Main content */}
       <main className="main-content">
-        {/* Top bar */}
         <div className="top-bar">
           <button
             className="menu-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
-            {/* Sidebar panel icon */}
             <svg
               width="20"
               height="20"
@@ -153,7 +187,6 @@ function App() {
           <div className="top-bar-spacer" />
         </div>
 
-        {/* Chat area */}
         <div className="chat-area">
           {!hasMessages ? (
             <div className="welcome-container">
@@ -166,7 +199,6 @@ function App() {
             <div className="messages-container">
               {renderedMessages}
 
-              {/* Streaming assistant message */}
               {isStreaming && (
                 <AssistantMessage
                   content={streamingContent}
@@ -179,7 +211,6 @@ function App() {
           )}
         </div>
 
-        {/* Error display */}
         {error && (
           <div className="error-banner">
             <span>{error}</span>
@@ -189,7 +220,6 @@ function App() {
           </div>
         )}
 
-        {/* Chat input */}
         <ChatBox
           inputValue={inputValue}
           onInputChange={setInputValue}

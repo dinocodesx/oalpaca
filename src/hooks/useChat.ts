@@ -9,11 +9,22 @@ import type {
 } from "../types/chat";
 import type { Model } from "../types/model";
 import type { WorkspacesIndex } from "../types/workspace";
-import { useWorkspace } from "./useWorkspace";
-import { useFolder } from "./useFolder";
 
-export function useChat() {
-  // ── State ──────────────────────────────────────────────────────────────────
+export interface UseChatOptions {
+  onChatListChange?: () => void;
+}
+
+/**
+ * Custom hook for managing chat functionality in the frontend.
+ * Handles chat messages, streaming responses, model selection, chat history,
+ * sidebar state, and search. Provides all state and actions needed by the
+ * chat interface components like message list, input field, and sidebar.
+ *
+ * @param activeWorkspaceId - The ID of the currently active workspace
+ * @param options - Optional callbacks for chat list changes
+ * @returns State and actions for chat management
+ */
+export function useChat(activeWorkspaceId: string, options?: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [models, setModels] = useState<Model[]>([]);
@@ -27,29 +38,9 @@ export function useChat() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ChatMeta[] | null>(null);
 
-  // Accumulates streaming chunks without causing re-renders on every append
   const streamingContentRef = useRef("");
 
-  // ── Sub-hooks ──────────────────────────────────────────────────────────────
-  const {
-    workspaces,
-    activeWorkspaceId,
-    activeWorkspace,
-    switchWorkspace: switchWorkspaceBase,
-    createNewWorkspace: createNewWorkspaceBase,
-    renameWorkspaceAction: renameWorkspaceBase,
-    deleteWorkspaceAction: deleteWorkspaceBase,
-  } = useWorkspace();
-
-  const {
-    folders,
-    refreshFolders,
-    createNewFolder: createNewFolderBase,
-    renameFolderAction: renameFolderBase,
-    deleteFolderAction: deleteFolderBase,
-  } = useFolder(activeWorkspaceId);
-
-  // ── Models ─────────────────────────────────────────────────────────────────
+  // Models
   useEffect(() => {
     invoke<Model[]>("list_models")
       .then((result) => {
@@ -62,7 +53,13 @@ export function useChat() {
       });
   }, []);
 
-  // ── Chat history ───────────────────────────────────────────────────────────
+  /**
+   * Fetches chat history for a workspace from the backend.
+   * Called on initial load and after any chat operations (create, rename, delete, move).
+   * Updates the chatHistory state used by the sidebar to display chat lists.
+   *
+   * @param wsId - Optional workspace ID; defaults to activeWorkspaceId if not provided
+   */
   const refreshChatHistory = useCallback(
     async (wsId?: string) => {
       const id = wsId ?? activeWorkspaceId;
@@ -83,8 +80,7 @@ export function useChat() {
     if (activeWorkspaceId) refreshChatHistory(activeWorkspaceId);
   }, [activeWorkspaceId, refreshChatHistory]);
 
-  // ── Streaming event listeners ──────────────────────────────────────────────
-  // Uses a `cancelled` flag to safely handle React StrictMode double-mount.
+  // Streaming listeners
   useEffect(() => {
     let cancelled = false;
     let unlistenChunk: UnlistenFn | null = null;
@@ -110,7 +106,6 @@ export function useChat() {
             setStreamingContent("");
             setIsStreaming(false);
 
-            // Fetch a fresh workspace ID to avoid a stale closure, then refresh history
             invoke<WorkspacesIndex>("get_all_workspaces")
               .then((ws) =>
                 !cancelled
@@ -138,7 +133,6 @@ export function useChat() {
         },
       );
 
-      // Cleaned up while awaiting — unlisten immediately to avoid leaks
       if (cancelled) {
         unlistenChunk?.();
         unlistenError?.();
@@ -153,9 +147,11 @@ export function useChat() {
     };
   }, []);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
-
-  /** Clears all transient chat UI state (switching / deleting workspaces). */
+  /**
+   * Resets all chat-related state when starting a new chat or loading a different chat.
+   * Clears messages, current chat ID, streaming content, search query, and search results.
+   * Used by startNewChat and loadChat to prepare the UI for a fresh conversation.
+   */
   const resetChatState = useCallback(() => {
     setMessages([]);
     setCurrentChatId(null);
@@ -165,8 +161,14 @@ export function useChat() {
     setSearchResults(null);
   }, []);
 
-  // ── Chat actions ───────────────────────────────────────────────────────────
-
+  /**
+   * Sends a user message to the backend and initiates streaming response.
+   * Adds user message to UI immediately, calls backend to send message,
+   * and listens for streaming chunks to display AI responses in real-time.
+   * Handles loading state and errors for the send action.
+   *
+   * @param text - The message text to send
+   */
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -195,12 +197,25 @@ export function useChat() {
     [isStreaming, selectedModel, currentChatId, activeWorkspaceId],
   );
 
+  /**
+   * Initiates a new chat conversation.
+   * Resets chat state, clears any current chat ID, and clears error state.
+   * Called when user clicks the "new chat" button in the sidebar.
+   */
   const startNewChat = useCallback(() => {
     resetChatState();
     setError(null);
     setIsStreaming(false);
   }, [resetChatState]);
 
+  /**
+   * Loads an existing chat by its ID from the backend.
+   * Fetches all messages for the chat, sets them in state, and restores
+   * the model that was used in that conversation. Used when clicking a chat
+   * in the sidebar history to continue a previous conversation.
+   *
+   * @param chatId - The ID of the chat to load
+   */
   const loadChat = useCallback(
     async (chatId: string) => {
       try {
@@ -222,25 +237,42 @@ export function useChat() {
     [chatHistory],
   );
 
+  /**
+   * Renames a chat's title in the backend and refreshes the chat list.
+   * Called from the sidebar when user edits a chat title via inline input.
+   * Triggers the onChatListChange callback to update parent components.
+   *
+   * @param chatId - The ID of the chat to rename
+   * @param newTitle - The new title for the chat
+   */
   const renameChatAction = useCallback(
     async (chatId: string, newTitle: string) => {
       try {
         await invoke("rename_chat", { chatId, newTitle });
         await refreshChatHistory();
+        options?.onChatListChange?.();
       } catch (err) {
         console.error("Failed to rename chat:", err);
         setError(String(err));
       }
     },
-    [refreshChatHistory],
+    [refreshChatHistory, options?.onChatListChange],
   );
 
+  /**
+   * Deletes a chat from the backend and updates the UI.
+   * Removes the chat from history, clears current chat if it was the deleted one,
+   * and triggers the onChatListChange callback. Called from sidebar context menu
+   * or action button when user deletes a chat.
+   *
+   * @param chatId - The ID of the chat to delete
+   */
   const deleteChatAction = useCallback(
     async (chatId: string) => {
       try {
         await invoke("delete_chat", { chatId });
         await refreshChatHistory();
-        await refreshFolders();
+        options?.onChatListChange?.();
         if (currentChatId === chatId) {
           setMessages([]);
           setCurrentChatId(null);
@@ -250,9 +282,18 @@ export function useChat() {
         setError(String(err));
       }
     },
-    [refreshChatHistory, refreshFolders, currentChatId],
+    [refreshChatHistory, options?.onChatListChange, currentChatId],
   );
 
+  /**
+   * Moves a chat to a different folder or into a folder.
+   * First removes the chat from its current folder (if any), then adds it
+   * to the target folder. Refreshes chat history after the move completes.
+   * Used by the sidebar folder picker and context menu to reorganize chats.
+   *
+   * @param chatId - The ID of the chat to move
+   * @param newFolderId - The ID of the target folder
+   */
   const moveChatToFolderAction = useCallback(
     async (chatId: string, newFolderId: string) => {
       try {
@@ -266,15 +307,23 @@ export function useChat() {
         }
         await invoke("add_chat_to_folder", { folderId: newFolderId, chatId });
         await refreshChatHistory();
-        await refreshFolders();
+        options?.onChatListChange?.();
       } catch (err) {
         console.error("Failed to move chat to folder:", err);
         setError(String(err));
       }
     },
-    [chatHistory, refreshChatHistory, refreshFolders],
+    [chatHistory, refreshChatHistory, options?.onChatListChange],
   );
 
+  /**
+   * Removes a chat from its folder, making it a loose (ungrouped) chat.
+   * Called when user drags a chat to the "Recent" section or uses the
+   * "Remove from folder" option in context menu. The chat appears in the
+   * loose chats list after removal.
+   *
+   * @param chatId - The ID of the chat to remove from its folder
+   */
   const removeChatFromFolderAction = useCallback(
     async (chatId: string) => {
       try {
@@ -285,114 +334,23 @@ export function useChat() {
           chatId,
         });
         await refreshChatHistory();
-        await refreshFolders();
+        options?.onChatListChange?.();
       } catch (err) {
         console.error("Failed to remove chat from folder:", err);
         setError(String(err));
       }
     },
-    [chatHistory, refreshChatHistory, refreshFolders],
+    [chatHistory, refreshChatHistory, options?.onChatListChange],
   );
 
-  // ── Workspace actions ──────────────────────────────────────────────────────
-
-  const switchWorkspace = useCallback(
-    async (workspaceId: string) => {
-      try {
-        await switchWorkspaceBase(workspaceId);
-        resetChatState();
-      } catch (err) {
-        console.error("Failed to switch workspace:", err);
-        setError(String(err));
-      }
-    },
-    [switchWorkspaceBase, resetChatState],
-  );
-
-  const createNewWorkspace = useCallback(
-    async (name: string) => {
-      try {
-        await createNewWorkspaceBase(name);
-        resetChatState();
-      } catch (err) {
-        console.error("Failed to create workspace:", err);
-        setError(String(err));
-      }
-    },
-    [createNewWorkspaceBase, resetChatState],
-  );
-
-  const renameWorkspaceAction = useCallback(
-    async (workspaceId: string, newName: string) => {
-      try {
-        await renameWorkspaceBase(workspaceId, newName);
-      } catch (err) {
-        console.error("Failed to rename workspace:", err);
-        setError(String(err));
-      }
-    },
-    [renameWorkspaceBase],
-  );
-
-  const deleteWorkspaceAction = useCallback(
-    async (workspaceId: string) => {
-      try {
-        const newWsId = await deleteWorkspaceBase(workspaceId);
-        if (newWsId) {
-          await refreshFolders(newWsId);
-          await refreshChatHistory(newWsId);
-        }
-        resetChatState();
-      } catch (err) {
-        console.error("Failed to delete workspace:", err);
-        setError(String(err));
-      }
-    },
-    [deleteWorkspaceBase, refreshFolders, refreshChatHistory, resetChatState],
-  );
-
-  // ── Folder actions ─────────────────────────────────────────────────────────
-
-  const createNewFolder = useCallback(
-    async (name: string) => {
-      try {
-        await createNewFolderBase(name);
-      } catch (err) {
-        console.error("Failed to create folder:", err);
-        setError(String(err));
-      }
-    },
-    [createNewFolderBase],
-  );
-
-  const renameFolderAction = useCallback(
-    async (folderId: string, newName: string) => {
-      try {
-        await renameFolderBase(folderId, newName);
-      } catch (err) {
-        console.error("Failed to rename folder:", err);
-        setError(String(err));
-      }
-    },
-    [renameFolderBase],
-  );
-
-  const deleteFolderAction = useCallback(
-    async (folderId: string) => {
-      try {
-        await deleteFolderBase(folderId);
-        // Folder deletion may unlink chats, so also refresh history
-        await refreshChatHistory();
-      } catch (err) {
-        console.error("Failed to delete folder:", err);
-        setError(String(err));
-      }
-    },
-    [deleteFolderBase, refreshChatHistory],
-  );
-
-  // ── Search ─────────────────────────────────────────────────────────────────
-
+  /**
+   * Searches chats within a workspace by query string.
+   * Called as user types in the sidebar search input. Debouncing should be
+   * handled by the calling component. Returns matching chats sorted by relevance.
+   * Results are displayed in a dedicated search results section in the sidebar.
+   *
+   * @param query - The search query string
+   */
   const searchChats = useCallback(
     async (query: string) => {
       setSearchQuery(query);
@@ -414,20 +372,22 @@ export function useChat() {
     [activeWorkspaceId],
   );
 
+  /**
+   * Clears the current search and hides search results.
+   * Called when user clicks the clear button (X) in the search input or presses Escape.
+   * Returns the sidebar to showing the normal folders and chat history view.
+   */
   const clearSearch = useCallback(() => {
     setSearchQuery("");
     setSearchResults(null);
   }, []);
 
-  // ── Derived ────────────────────────────────────────────────────────────────
   const hasMessages = messages.length > 0 || streamingContent.length > 0;
   const looseChats = chatHistory.filter((c) => !c.folder_id);
   const chatsByFolder = (folderId: string): ChatMeta[] =>
     chatHistory.filter((c) => c.folder_id === folderId);
 
-  // ── Return ─────────────────────────────────────────────────────────────────
   return {
-    // State
     messages,
     inputValue,
     models,
@@ -439,30 +399,16 @@ export function useChat() {
     chatHistory,
     sidebarOpen,
     hasMessages,
-
-    // Workspace state
-    workspaces,
-    activeWorkspaceId,
-    activeWorkspace,
-
-    // Folder state
-    folders,
-
-    // Search state
     searchQuery,
     searchResults,
-
-    // Derived
     looseChats,
     chatsByFolder,
 
-    // Setters
     setInputValue,
     setSelectedModel,
     setError,
     setSidebarOpen,
 
-    // Chat actions
     sendMessage,
     startNewChat,
     loadChat,
@@ -471,19 +417,8 @@ export function useChat() {
     moveChatToFolderAction,
     removeChatFromFolderAction,
     refreshChatHistory,
+    resetChatState,
 
-    // Workspace actions
-    switchWorkspace,
-    createNewWorkspace,
-    renameWorkspaceAction,
-    deleteWorkspaceAction,
-
-    // Folder actions
-    createNewFolder,
-    renameFolderAction,
-    deleteFolderAction,
-
-    // Search actions
     searchChats,
     clearSearch,
   };
