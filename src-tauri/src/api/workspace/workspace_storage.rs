@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+/// Metadata for a workspace containing id, name, created_at, and last_updated_at timestamps.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WorkspaceMeta {
     pub id: String,
@@ -10,12 +11,14 @@ pub struct WorkspaceMeta {
     pub last_updated_at: String,
 }
 
+/// The root structure for the workspaces index file (workspaces.json). Contains list of workspaces and the active workspace ID.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WorkspacesIndex {
     pub workspaces: Vec<WorkspaceMeta>,
     pub active_workspace_id: String,
 }
 
+/// Returns the path to the .data directory, creating it if it doesn't exist. Used internally for all file operations.
 fn get_data_dir() -> Result<PathBuf, String> {
     let data_dir = PathBuf::from("../.data");
     if !data_dir.exists() {
@@ -25,15 +28,18 @@ fn get_data_dir() -> Result<PathBuf, String> {
     Ok(data_dir)
 }
 
+/// Returns the path to the workspaces.json index file. Used internally for loading/saving workspaces.
 fn get_workspaces_index_path() -> Result<PathBuf, String> {
     let data_dir = get_data_dir()?;
     Ok(data_dir.join("workspaces.json"))
 }
 
+/// Returns the current UTC time as an ISO 8601 RFC3339 string. Used for setting timestamps on workspace metadata.
 fn now_iso() -> String {
     chrono::Utc::now().to_rfc3339()
 }
 
+/// Loads the workspaces index from workspaces.json, creating a default workspace if it doesn't exist. Used by Tauri commands to get all workspaces.
 pub fn load_workspaces_index() -> Result<WorkspacesIndex, String> {
     let index_path = get_workspaces_index_path()?;
     if !index_path.exists() {
@@ -58,6 +64,7 @@ pub fn load_workspaces_index() -> Result<WorkspacesIndex, String> {
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse workspaces index: {}", e))
 }
 
+/// Saves the workspaces index to workspaces.json. Used whenever workspace metadata is modified (create, rename, delete, etc.).
 pub fn save_workspaces_index(index: &WorkspacesIndex) -> Result<(), String> {
     let index_path = get_workspaces_index_path()?;
     let content = serde_json::to_string_pretty(index)
@@ -65,11 +72,13 @@ pub fn save_workspaces_index(index: &WorkspacesIndex) -> Result<(), String> {
     fs::write(&index_path, content).map_err(|e| format!("Failed to write workspaces index: {}", e))
 }
 
+/// Tauri command: Returns all workspaces and the active workspace ID. Called from frontend to display workspace list and current workspace.
 #[tauri::command]
 pub async fn get_all_workspaces() -> Result<WorkspacesIndex, String> {
     load_workspaces_index()
 }
 
+/// Tauri command: Creates a new workspace with the given name. Called from frontend when user creates a new workspace.
 #[tauri::command]
 pub async fn create_workspace(name: String) -> Result<WorkspaceMeta, String> {
     let trimmed = name.trim();
@@ -94,6 +103,7 @@ pub async fn create_workspace(name: String) -> Result<WorkspaceMeta, String> {
     Ok(workspace)
 }
 
+/// Tauri command: Renames a workspace with a new name. Called from frontend when user edits a workspace name.
 #[tauri::command]
 pub async fn rename_workspace(workspace_id: String, new_name: String) -> Result<(), String> {
     let trimmed = new_name.trim();
@@ -116,6 +126,7 @@ pub async fn rename_workspace(workspace_id: String, new_name: String) -> Result<
     save_workspaces_index(&index)
 }
 
+/// Tauri command: Deletes a workspace and cleans up its folders and chats. Prevents deletion of last workspace. Called from frontend when user deletes a workspace.
 #[tauri::command]
 pub async fn delete_workspace(workspace_id: String) -> Result<(), String> {
     let mut index = load_workspaces_index()?;
@@ -153,6 +164,7 @@ pub async fn delete_workspace(workspace_id: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Tauri command: Sets the active workspace by ID. Called from frontend when user switches between workspaces.
 #[tauri::command]
 pub async fn set_active_workspace(workspace_id: String) -> Result<(), String> {
     let mut index = load_workspaces_index()?;
