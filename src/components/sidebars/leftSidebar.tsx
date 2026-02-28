@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   MagnifyingGlassIcon,
   GearIcon,
@@ -13,48 +13,37 @@ import type { Model } from "../../types/model";
 import type { WorkspaceMeta } from "../../types/workspace";
 import WorkspaceDropdown from "./workspace";
 import ChatFolder from "./chatFolder";
-import ChatTitle from "./chatTilte";
+import ChatTitle from "./chatTitle";
 import UserProfile from "./userProfile";
 import "./leftSidebar.css";
 
-interface LeftSidebarProps {
+/** Props for the left sidebar; all state and handlers are passed from the parent (e.g. App). */
+export interface LeftSidebarProps {
   isOpen: boolean;
   currentChatId: string | null;
   onNewChat: () => void;
   onLoadChat: (chatId: string) => void;
   onToggle: () => void;
-
-  // Workspace
   workspaces: WorkspaceMeta[];
   activeWorkspace: WorkspaceMeta | null;
   onSwitchWorkspace: (workspaceId: string) => void;
   onCreateWorkspace: (name: string) => void;
   onRenameWorkspace: (workspaceId: string, newName: string) => void;
   onDeleteWorkspace: (workspaceId: string) => void;
-
-  // Folders
   folders: FolderMeta[];
   looseChats: ChatMeta[];
   chatsByFolder: (folderId: string) => ChatMeta[];
   onCreateFolder: (name: string) => void;
   onRenameFolder: (folderId: string, newName: string) => void;
   onDeleteFolder: (folderId: string) => void;
-
-  // Folder membership
   onMoveToFolder: (chatId: string, folderId: string) => void;
   onRemoveChatFromFolder: (chatId: string) => void;
-
-  // Chat CRUD
   onRenameChat: (chatId: string, newTitle: string) => void;
   onDeleteChat: (chatId: string) => void;
-
-  // Search
   searchQuery: string;
   searchResults: ChatMeta[] | null;
   onSearch: (query: string) => void;
   onClearSearch: () => void;
-
-  // Models (for settings)
   models: Model[];
 }
 
@@ -63,111 +52,101 @@ export default function LeftSidebar({
   currentChatId,
   onNewChat,
   onLoadChat,
-
-  // Workspace
   workspaces,
   activeWorkspace,
   onSwitchWorkspace,
   onCreateWorkspace,
   onRenameWorkspace,
   onDeleteWorkspace,
-
-  // Folders
   folders,
   looseChats,
   chatsByFolder,
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
-
-  // Folder membership
   onMoveToFolder,
   onRemoveChatFromFolder,
-
-  // Chat CRUD
   onRenameChat,
   onDeleteChat,
-
-  // Search
   searchQuery,
   searchResults,
   onSearch,
   onClearSearch,
-
-  // Models
   models,
 }: LeftSidebarProps) {
+  // ——— Local UI state ———
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-
-  // Drag-and-drop state for the "Recent" section (acts as "remove from folder" drop zone)
+  /** True when a chat is being dragged over the "Recent" section (drop zone to remove from folder). */
   const [isRecentDragOver, setIsRecentDragOver] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const newFolderInputRef = useRef<HTMLInputElement>(null);
 
+  /** Chats not in any folder, newest first for the Recent list. */
   const recentLooseChats = [...looseChats].reverse();
   const isSearching = searchQuery.trim().length > 0;
 
-  // Auto-focus folder name input
+  // Focus the new-folder input when the create-folder row is shown.
   useEffect(() => {
-    if (isCreatingFolder && newFolderInputRef.current) {
-      newFolderInputRef.current.focus();
-    }
+    if (isCreatingFolder) newFolderInputRef.current?.focus();
   }, [isCreatingFolder]);
 
-  const handleCreateFolder = () => {
+  // ——— Handlers ———
+  const handleCreateFolder = useCallback(() => {
     const trimmed = newFolderName.trim();
     if (trimmed) {
       onCreateFolder(trimmed);
       setNewFolderName("");
       setIsCreatingFolder(false);
     }
-  };
+  }, [newFolderName, onCreateFolder]);
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape") {
-      onClearSearch();
-      searchInputRef.current?.blur();
-    }
-  };
+  /** Escape clears search and blurs the search input. */
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Escape") {
+        onClearSearch();
+        searchInputRef.current?.blur();
+      }
+    },
+    [onClearSearch],
+  );
 
-  // ── Recent section: drop target (removing a chat from its folder) ──
-  const handleRecentDragEnter = (e: React.DragEvent) => {
+  /** Recent section as drop target: highlight when a chat is dragged over it. */
+  const handleRecentDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsRecentDragOver(true);
-  };
+  }, []);
 
-  const handleRecentDragLeave = (e: React.DragEvent) => {
-    // Only clear when the pointer truly leaves this section, not its children
+  /** Only clear drag-over when the pointer leaves the section (not when moving to a child). */
+  const handleRecentDragLeave = useCallback((e: React.DragEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsRecentDragOver(false);
     }
-  };
+  }, []);
 
-  const handleRecentDragOver = (e: React.DragEvent) => {
+  const handleRecentDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-  };
+  }, []);
 
-  const handleRecentDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsRecentDragOver(false);
-
-    const chatId = e.dataTransfer.getData("text/plain");
-    if (!chatId) return;
-
-    // Only do something if the chat is currently in a folder
-    onRemoveChatFromFolder(chatId);
-  };
+  /** Drop a chat here to remove it from its folder (move to "loose" / Recent). */
+  const handleRecentDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsRecentDragOver(false);
+      const chatId = e.dataTransfer.getData("text/plain");
+      if (chatId) onRemoveChatFromFolder(chatId);
+    },
+    [onRemoveChatFromFolder],
+  );
 
   return (
     <aside className={`left-sidebar ${isOpen ? "left-sidebar-open" : ""}`}>
-      {/* ──────────────────────────────────────── */}
-      {/*  Workspace Header                       */}
-      {/* ──────────────────────────────────────── */}
+      {/* Workspace selector + New chat button */}
       <div className="sidebar-workspace-header">
         <WorkspaceDropdown
           workspaces={workspaces}
@@ -177,12 +156,11 @@ export default function LeftSidebar({
           onRename={onRenameWorkspace}
           onDelete={onDeleteWorkspace}
         />
-
-        {/* New chat button (pencil) */}
         <button
           className="sidebar-new-chat-btn"
           onClick={onNewChat}
           title="New chat"
+          type="button"
         >
           <svg
             width="16"
@@ -200,9 +178,6 @@ export default function LeftSidebar({
         </button>
       </div>
 
-      {/* ──────────────────────────────────────── */}
-      {/*  Search                                 */}
-      {/* ──────────────────────────────────────── */}
       <div className="sidebar-search">
         <div
           className={`sidebar-search-container ${isSearchFocused ? "sidebar-search-container-focused" : ""}`}
@@ -225,6 +200,7 @@ export default function LeftSidebar({
           />
           {isSearching && (
             <button
+              type="button"
               className="sidebar-search-clear"
               onClick={() => {
                 onClearSearch();
@@ -238,12 +214,9 @@ export default function LeftSidebar({
         </div>
       </div>
 
-      {/* ──────────────────────────────────────── */}
-      {/*  Content Area (folders + chats)          */}
-      {/* ──────────────────────────────────────── */}
+      {/* Scrollable area: either search results or folders + Recent */}
       <div className="sidebar-content">
         {isSearching ? (
-          /* ── Search Results ── */
           <div className="sidebar-section">
             <div className="sidebar-section-header">
               <span className="sidebar-section-label">
@@ -257,7 +230,7 @@ export default function LeftSidebar({
               </span>
             </div>
             <div className="sidebar-section-list">
-              {searchResults && searchResults.length === 0 ? (
+              {searchResults?.length === 0 ? (
                 <div className="sidebar-empty">No chats found</div>
               ) : searchResults ? (
                 searchResults.map((chat) => (
@@ -278,12 +251,13 @@ export default function LeftSidebar({
           </div>
         ) : (
           <>
-            {/* ── Folders Section ── */}
+            {/* Folders section: list of folders + inline "create folder" row */}
             {(folders.length > 0 || isCreatingFolder) && (
               <div className="sidebar-section">
                 <div className="sidebar-section-header">
                   <span className="sidebar-section-label">Folders</span>
                   <button
+                    type="button"
                     className="sidebar-section-action"
                     onClick={() => setIsCreatingFolder(true)}
                     title="New folder"
@@ -292,7 +266,6 @@ export default function LeftSidebar({
                   </button>
                 </div>
                 <div className="sidebar-section-list">
-                  {/* Create folder inline input */}
                   {isCreatingFolder && (
                     <div className="sidebar-create-folder-row">
                       <input
@@ -310,6 +283,7 @@ export default function LeftSidebar({
                         placeholder="Folder name..."
                       />
                       <button
+                        type="button"
                         className="sidebar-create-folder-btn sidebar-create-folder-confirm"
                         onClick={handleCreateFolder}
                         title="Create"
@@ -317,6 +291,7 @@ export default function LeftSidebar({
                         <CheckIcon width={12} height={12} />
                       </button>
                       <button
+                        type="button"
                         className="sidebar-create-folder-btn sidebar-create-folder-cancel"
                         onClick={() => {
                           setIsCreatingFolder(false);
@@ -328,7 +303,6 @@ export default function LeftSidebar({
                       </button>
                     </div>
                   )}
-
                   {folders.map((folder) => (
                     <ChatFolder
                       key={folder.id}
@@ -349,8 +323,7 @@ export default function LeftSidebar({
               </div>
             )}
 
-            {/* ── Recent Chats Section (loose chats, not in any folder) ── */}
-            {/*    Also serves as the drop-zone for removing chats from folders */}
+            {/* Recent: loose chats; also acts as drop zone to remove a chat from its folder */}
             <div
               className={`sidebar-section ${isRecentDragOver ? "sidebar-section-drag-over" : ""}`}
               onDragEnter={handleRecentDragEnter}
@@ -370,6 +343,7 @@ export default function LeftSidebar({
                 </span>
                 {folders.length === 0 && !isCreatingFolder && (
                   <button
+                    type="button"
                     className="sidebar-section-action"
                     onClick={() => setIsCreatingFolder(true)}
                     title="New folder"
@@ -408,12 +382,10 @@ export default function LeftSidebar({
         )}
       </div>
 
-      {/* ──────────────────────────────────────── */}
-      {/*  Bottom Section: Settings + Profile     */}
-      {/* ──────────────────────────────────────── */}
+      {/* Settings (expandable model list) + user profile */}
       <div className="sidebar-bottom">
-        {/* Settings toggle */}
         <button
+          type="button"
           className={`sidebar-settings-btn ${showSettings ? "sidebar-settings-btn-active" : ""}`}
           onClick={() => setShowSettings(!showSettings)}
         >
@@ -426,7 +398,6 @@ export default function LeftSidebar({
           />
         </button>
 
-        {/* Settings content: model list */}
         {showSettings && (
           <div className="sidebar-settings-panel">
             <div className="sidebar-settings-panel-header">
@@ -458,7 +429,6 @@ export default function LeftSidebar({
           </div>
         )}
 
-        {/* Profile */}
         <UserProfile
           avatarUrl="https://github.com/dinocodesx.png"
           username="Debarshee Chakraborty"

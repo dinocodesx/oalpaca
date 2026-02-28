@@ -1,11 +1,19 @@
-/* Chat Title Wrapper (needed for relative positioning of the folder picker dropdown) */
-
 .chat-title-wrapper {
     position: relative;
     width: 100%;
 }
 
-/* Chat Title Item — Sidebar chat entry */
+.chat-title-wrapper-dragging {
+    opacity: 0.4;
+}
+
+.chat-title-wrapper[draggable="true"] {
+    cursor: grab;
+}
+
+.chat-title-wrapper[draggable="true"]:active {
+    cursor: grabbing;
+}
 
 .chat-title-item {
     display: flex;
@@ -17,14 +25,14 @@
     background: transparent;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.12s ease;
-    gap: 6px;
-    text-decoration: none;
-    color: inherit;
     font-family: inherit;
     font-size: 13px;
     line-height: 1.4;
     position: relative;
+    gap: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease;
 }
 
 .chat-title-item:hover {
@@ -34,22 +42,6 @@
 .chat-title-item.chat-title-active {
     background: rgba(0, 0, 0, 0.06);
 }
-
-/* Dragging state on the wrapper div */
-.chat-title-wrapper-dragging {
-    opacity: 0.4;
-}
-
-/* Drag-source grab cursor on the wrapper div */
-.chat-title-wrapper[draggable="true"] {
-    cursor: grab;
-}
-
-.chat-title-wrapper[draggable="true"]:active {
-    cursor: grabbing;
-}
-
-/* Chat Icon */
 
 .chat-title-icon {
     display: flex;
@@ -61,17 +53,15 @@
     color: rgba(55, 53, 47, 0.35);
 }
 
-/* Chat Title Text */
-
 .chat-title-text {
+    flex: 1;
+    min-width: 0;
     font-size: 13px;
     color: rgba(55, 53, 47, 0.65);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
-    flex: 1;
-    min-width: 0;
     transition: color 0.12s ease;
 }
 
@@ -83,8 +73,6 @@
 .chat-title-item.chat-title-active .chat-title-text {
     font-weight: 500;
 }
-
-/* Hover-reveal Actions (rename / delete) */
 
 .chat-title-actions {
     display: flex;
@@ -135,8 +123,6 @@
     background: rgba(220, 38, 38, 0.08);
     color: #dc2626;
 }
-
-/* Inline Rename Row */
 
 .chat-title-rename-row {
     display: flex;
@@ -205,8 +191,6 @@
     color: rgb(55, 53, 47);
 }
 
-/* Context Menu (right-click) */
-
 .chat-title-context-menu {
     min-width: 140px;
     background: white;
@@ -260,14 +244,6 @@
     background: rgba(220, 38, 38, 0.06);
 }
 
-/* Divider inside context menu */
-.chat-title-context-divider {
-    height: 1px;
-    background: rgba(0, 0, 0, 0.06);
-    margin: 3px 4px;
-}
-
-/* Expandable "Move to folder" row */
 .chat-title-context-item-expandable {
     justify-content: flex-start;
 }
@@ -276,7 +252,12 @@
     flex-shrink: 0;
 }
 
-/* Folder list sub-section inside context menu */
+.chat-title-context-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.06);
+    margin: 3px 4px;
+}
+
 .chat-title-context-folder-list {
     padding: 2px 0 2px 8px;
     border-left: 2px solid rgba(0, 0, 0, 0.06);
@@ -294,8 +275,6 @@
     color: rgba(55, 53, 47, 0.35);
     font-style: italic;
 }
-
-/* Folder Picker Dropdown (from hover button) */
 
 .chat-title-folder-picker {
     position: absolute;

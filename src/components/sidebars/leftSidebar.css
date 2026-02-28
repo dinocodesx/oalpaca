@@ -1,4 +1,4 @@
-/* Left Sidebar — Semi-transparent Notion style */
+/* Left Sidebar */
 
 .left-sidebar {
     width: var(--sidebar-width, 260px);
@@ -19,7 +19,6 @@
     user-select: none;
 }
 
-/* Desktop: slide in/out without overlay */
 @media (min-width: 769px) {
     .left-sidebar {
         transform: translateX(-100%);
@@ -28,7 +27,6 @@
         position: relative;
         margin-right: calc(-1 * var(--sidebar-width, 260px));
     }
-
     .left-sidebar.left-sidebar-open {
         transform: translateX(0);
         opacity: 1;
@@ -37,7 +35,6 @@
     }
 }
 
-/* Mobile: slide from left without dimming overlay */
 @media (max-width: 768px) {
     .left-sidebar {
         position: fixed;
@@ -49,7 +46,6 @@
         pointer-events: none;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
     }
-
     .left-sidebar.left-sidebar-open {
         transform: translateX(0);
         opacity: 1;
@@ -57,7 +53,7 @@
     }
 }
 
-/* Workspace Header */
+/* Header */
 
 .sidebar-workspace-header {
     display: flex;
@@ -172,7 +168,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* Content Area (scrollable) */
+/* Content */
 
 .sidebar-content {
     flex: 1;
@@ -200,7 +196,7 @@
     background: rgba(0, 0, 0, 0.18);
 }
 
-/* Section (Folders, Recent chats, Search) */
+/* Section */
 
 .sidebar-section {
     display: flex;
@@ -210,7 +206,6 @@
     transition: background 0.15s ease;
 }
 
-/* Drop target highlight when a chat is dragged over the Recent section */
 .sidebar-section-drag-over {
     background: rgba(35, 131, 226, 0.05);
     outline: 2px dashed rgba(35, 131, 226, 0.3);
@@ -284,7 +279,6 @@
     color: rgba(35, 131, 226, 0.75);
 }
 
-/* Drop hint text shown inside the section label during drag-over */
 .sidebar-section-drop-hint {
     color: rgba(35, 131, 226, 0.8);
     font-weight: 500;
@@ -300,7 +294,7 @@
     }
 }
 
-/* Create Folder (inline input row) */
+/* Create folder */
 
 .sidebar-create-folder-row {
     display: flex;
@@ -369,7 +363,7 @@
     color: rgb(55, 53, 47);
 }
 
-/* Bottom Section (Settings + Profile) */
+/* Bottom */
 
 .sidebar-bottom {
     flex-shrink: 0;
@@ -378,8 +372,6 @@
     flex-direction: column;
     background: rgba(247, 247, 245, 0.5);
 }
-
-/* Settings Button */
 
 .sidebar-settings-btn {
     display: flex;
@@ -422,8 +414,6 @@
     transform: rotate(180deg);
 }
 
-/* Settings Panel (model list) */
-
 .sidebar-settings-panel {
     padding: 0 8px 6px;
     animation: settingsPanelSlideIn 0.15s ease;
@@ -441,7 +431,7 @@
 }
 
 .sidebar-settings-panel-header {
-    padding: 4px 8px 4px;
+    padding: 4px 8px;
 }
 
 .sidebar-settings-panel-label {
@@ -512,47 +502,4 @@
     color: rgba(55, 53, 47, 0.35);
     text-align: center;
     font-style: italic;
-}
-
-/* User Profile (bottom-most) */
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-top: 1px solid rgba(0, 0, 0, 0.04);
-    flex-shrink: 0;
-    min-height: 48px;
-    user-select: none;
-}
-
-.user-profile-avatar-wrapper {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    min-height: 26px;
-    flex-shrink: 0;
-}
-
-.user-profile-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 9999px;
-    object-fit: cover;
-    display: block;
-    background: rgba(0, 0, 0, 0.06);
-}
-
-.user-profile-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: rgb(55, 53, 47);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-    letter-spacing: -0.005em;
-    flex: 1;
-    min-width: 0;
 }

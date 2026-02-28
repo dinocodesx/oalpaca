@@ -1,12 +1,8 @@
-/* Workspace Dropdown — Notion-style */
-
 .workspace-dropdown-wrapper {
     position: relative;
     flex-shrink: 0;
     min-width: 0;
 }
-
-/* Trigger Button */
 
 .workspace-trigger {
     display: flex;
@@ -47,8 +43,6 @@
     color: rgba(55, 53, 47, 0.45);
 }
 
-/* Dropdown Menu */
-
 .workspace-dropdown {
     position: absolute;
     top: calc(100% + 4px);
@@ -77,8 +71,6 @@
     }
 }
 
-/* Dropdown List */
-
 .workspace-dropdown-list {
     max-height: 220px;
     overflow-y: auto;
@@ -97,8 +89,6 @@
     background: rgba(0, 0, 0, 0.1);
     border-radius: 9999px;
 }
-
-/* Dropdown Item */
 
 .workspace-dropdown-item {
     display: flex;
@@ -146,8 +136,6 @@
     min-width: 0;
 }
 
-/* Item Actions (rename / delete) */
-
 .workspace-dropdown-item-actions {
     display: flex;
     align-items: center;
@@ -189,15 +177,11 @@
     color: #dc2626;
 }
 
-/* Separator */
-
 .workspace-dropdown-separator {
     height: 1px;
     background: rgba(0, 0, 0, 0.06);
     margin: 4px 6px;
 }
-
-/* Create Workspace Button */
 
 .workspace-dropdown-create-btn {
     display: flex;
@@ -229,8 +213,6 @@
     opacity: 0.5;
     flex-shrink: 0;
 }
-
-/* Inline Input (for create & rename) */
 
 .workspace-create-form,
 .workspace-rename-row {

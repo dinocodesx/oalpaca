@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Pencil2Icon,
   ChevronDownIcon,
@@ -11,7 +11,7 @@ import {
 import type { WorkspaceMeta } from "../../types/workspace";
 import "./workspace.css";
 
-interface WorkspaceDropdownProps {
+export interface WorkspaceDropdownProps {
   workspaces: WorkspaceMeta[];
   activeWorkspace: WorkspaceMeta | null;
   onSwitch: (workspaceId: string) => void;
@@ -28,6 +28,7 @@ export default function WorkspaceDropdown({
   onRename,
   onDelete,
 }: WorkspaceDropdownProps) {
+  // ——— State ———
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createName, setCreateName] = useState("");
@@ -37,9 +38,10 @@ export default function WorkspaceDropdown({
   const createInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown on outside click
+  // Close dropdown when clicking outside.
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
@@ -48,20 +50,17 @@ export default function WorkspaceDropdown({
         setIsCreating(false);
         setRenamingId(null);
       }
-    }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  // Auto-focus inputs
+  // Focus create input when the create form is shown.
   useEffect(() => {
-    if (isCreating && createInputRef.current) {
-      createInputRef.current.focus();
-    }
+    if (isCreating) createInputRef.current?.focus();
   }, [isCreating]);
 
+  // Focus and select rename input when entering rename mode for a workspace.
   useEffect(() => {
     if (renamingId && renameInputRef.current) {
       renameInputRef.current.focus();
@@ -69,7 +68,8 @@ export default function WorkspaceDropdown({
     }
   }, [renamingId]);
 
-  const handleCreate = () => {
+  // ——— Handlers ———
+  const handleCreate = useCallback(() => {
     const trimmed = createName.trim();
     if (trimmed) {
       onCreate(trimmed);
@@ -77,34 +77,41 @@ export default function WorkspaceDropdown({
       setIsCreating(false);
       setIsOpen(false);
     }
-  };
+  }, [createName, onCreate]);
 
-  const handleRename = (id: string) => {
-    const trimmed = renameValue.trim();
-    if (trimmed) {
-      onRename(id, trimmed);
-      setRenamingId(null);
-      setRenameValue("");
-    }
-  };
+  const handleRename = useCallback(
+    (id: string) => {
+      const trimmed = renameValue.trim();
+      if (trimmed) {
+        onRename(id, trimmed);
+        setRenamingId(null);
+        setRenameValue("");
+      }
+    },
+    [renameValue, onRename],
+  );
 
-  const handleDelete = (id: string) => {
-    onDelete(id);
-    setIsOpen(false);
-  };
+  const handleDelete = useCallback(
+    (id: string) => {
+      onDelete(id);
+      setIsOpen(false);
+    },
+    [onDelete],
+  );
 
-  const startRename = (ws: WorkspaceMeta, e: React.MouseEvent) => {
+  const startRename = useCallback((ws: WorkspaceMeta, e: React.MouseEvent) => {
     e.stopPropagation();
     setRenamingId(ws.id);
     setRenameValue(ws.name);
-  };
+  }, []);
 
   const displayName = activeWorkspace?.name || "Workspace";
 
   return (
     <div className="workspace-dropdown-wrapper" ref={dropdownRef}>
-      {/* Trigger button */}
+      {/* Trigger: shows current workspace name */}
       <button
+        type="button"
         className="workspace-trigger"
         onClick={() => setIsOpen(!isOpen)}
         title="Switch workspace"
@@ -113,10 +120,9 @@ export default function WorkspaceDropdown({
         <ChevronDownIcon className="workspace-trigger-chevron" />
       </button>
 
-      {/* Dropdown menu */}
       {isOpen && (
         <div className="workspace-dropdown">
-          {/* Workspace list */}
+          {/* List of workspaces: click to switch, or inline rename/delete */}
           <div className="workspace-dropdown-list">
             {workspaces.map((ws) => (
               <div
@@ -137,6 +143,7 @@ export default function WorkspaceDropdown({
                       placeholder="Workspace name"
                     />
                     <button
+                      type="button"
                       className="workspace-inline-btn workspace-inline-confirm"
                       onClick={() => handleRename(ws.id)}
                       title="Confirm"
@@ -144,6 +151,7 @@ export default function WorkspaceDropdown({
                       <CheckIcon width={12} height={12} />
                     </button>
                     <button
+                      type="button"
                       className="workspace-inline-btn workspace-inline-cancel"
                       onClick={() => setRenamingId(null)}
                       title="Cancel"
@@ -153,6 +161,7 @@ export default function WorkspaceDropdown({
                   </div>
                 ) : (
                   <button
+                    type="button"
                     className="workspace-dropdown-item-btn"
                     onClick={() => {
                       onSwitch(ws.id);
@@ -167,6 +176,7 @@ export default function WorkspaceDropdown({
                 {renamingId !== ws.id && (
                   <div className="workspace-dropdown-item-actions">
                     <button
+                      type="button"
                       className="workspace-action-btn"
                       onClick={(e) => startRename(ws, e)}
                       title="Rename workspace"
@@ -175,6 +185,7 @@ export default function WorkspaceDropdown({
                     </button>
                     {workspaces.length > 1 && (
                       <button
+                        type="button"
                         className="workspace-action-btn workspace-action-btn-danger"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -191,10 +202,9 @@ export default function WorkspaceDropdown({
             ))}
           </div>
 
-          {/* Separator */}
           <div className="workspace-dropdown-separator" />
 
-          {/* Create new workspace */}
+          {/* Create workspace: inline form or "New Workspace" button */}
           {isCreating ? (
             <div className="workspace-create-form">
               <input
@@ -212,6 +222,7 @@ export default function WorkspaceDropdown({
                 placeholder="Workspace name..."
               />
               <button
+                type="button"
                 className="workspace-inline-btn workspace-inline-confirm"
                 onClick={handleCreate}
                 title="Create"
@@ -219,6 +230,7 @@ export default function WorkspaceDropdown({
                 <CheckIcon width={12} height={12} />
               </button>
               <button
+                type="button"
                 className="workspace-inline-btn workspace-inline-cancel"
                 onClick={() => {
                   setIsCreating(false);
@@ -231,6 +243,7 @@ export default function WorkspaceDropdown({
             </div>
           ) : (
             <button
+              type="button"
               className="workspace-dropdown-create-btn"
               onClick={() => setIsCreating(true)}
             >

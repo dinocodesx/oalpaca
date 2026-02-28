@@ -1,6 +1,6 @@
 import "./userProfile.css";
 
-interface UserProfileProps {
+export interface UserProfileProps {
   avatarUrl: string;
   username: string;
 }

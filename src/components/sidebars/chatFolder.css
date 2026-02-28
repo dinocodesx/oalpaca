@@ -1,4 +1,11 @@
-/* Drag cursor lives on the inner button for chats inside a folder */
+.chat-folder {
+    margin-bottom: 2px;
+}
+
+.chat-folder-drop-zone {
+    border-radius: 6px;
+}
+
 .chat-folder-chat-item[draggable="true"] {
     cursor: grab;
 }
@@ -6,17 +13,6 @@
 .chat-folder-chat-item[draggable="true"]:active {
     cursor: grabbing;
 }
-
-/* Drop-zone wrapper: sits around the folder header button */
-.chat-folder-drop-zone {
-    border-radius: 6px;
-}
-
-.chat-folder {
-    margin-bottom: 2px;
-}
-
-/* Folder Header */
 
 .chat-folder-header {
     display: flex;
@@ -41,7 +37,6 @@
     background: rgba(0, 0, 0, 0.04);
 }
 
-/* Drag-over state — applied to the wrapper div, highlights the folder header */
 .chat-folder-header-drag-over {
     outline: 2px dashed rgba(35, 131, 226, 0.45);
     outline-offset: -2px;
@@ -57,27 +52,6 @@
     color: rgba(35, 131, 226, 0.85) !important;
 }
 
-/* Drop hint label replaces the count badge during drag-over */
-.chat-folder-drop-hint {
-    font-size: 11px;
-    color: rgba(35, 131, 226, 0.75);
-    flex-shrink: 0;
-    padding: 0 4px;
-    font-weight: 500;
-    animation: dropHintPulse 0.8s ease infinite alternate;
-}
-
-@keyframes dropHintPulse {
-    from {
-        opacity: 0.6;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-/* Chevron (rotation on expand) */
-
 .chat-folder-chevron {
     flex-shrink: 0;
     color: rgba(55, 53, 47, 0.4);
@@ -89,8 +63,6 @@
 .chat-folder-chevron-expanded {
     transform: rotate(90deg);
 }
-
-/* Folder Name & Count */
 
 .chat-folder-name {
     flex: 1;
@@ -121,7 +93,23 @@
     opacity: 0;
 }
 
-/* Folder Header Actions (hover-reveal) */
+.chat-folder-drop-hint {
+    font-size: 11px;
+    color: rgba(35, 131, 226, 0.75);
+    flex-shrink: 0;
+    padding: 0 4px;
+    font-weight: 500;
+    animation: dropHintPulse 0.8s ease infinite alternate;
+}
+
+@keyframes dropHintPulse {
+    from {
+        opacity: 0.6;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
 .chat-folder-actions {
     display: flex;
@@ -168,8 +156,6 @@
     color: #dc2626;
 }
 
-/* Folder Children (indented chats) */
-
 .chat-folder-children {
     padding-left: 14px;
     margin-left: 8px;
@@ -194,8 +180,6 @@
     color: rgba(55, 53, 47, 0.3);
     font-style: italic;
 }
-
-/* Chat Item inside Folder */
 
 .chat-folder-chat-wrapper {
     margin-bottom: 1px;
@@ -253,8 +237,6 @@
     color: rgb(55, 53, 47);
 }
 
-/* Chat Item Actions (hover-reveal) */
-
 .chat-folder-chat-actions {
     display: flex;
     align-items: center;
@@ -272,8 +254,6 @@
     opacity: 1;
     pointer-events: auto;
 }
-
-/* Rename Row (inline editing) */
 
 .chat-folder-rename-row,
 .chat-folder-chat-rename-row {
@@ -342,8 +322,6 @@
     color: rgb(55, 53, 47);
 }
 
-/* Context Menu */
-
 .chat-folder-context-menu {
     min-width: 140px;
     background: white;
@@ -397,19 +375,16 @@
     background: rgba(220, 38, 38, 0.06);
 }
 
-/* Divider inside context menu */
+.chat-folder-context-item-expandable {
+    justify-content: flex-start;
+}
+
 .chat-folder-context-divider {
     height: 1px;
     background: rgba(0, 0, 0, 0.06);
     margin: 3px 4px;
 }
 
-/* Expandable "Move to folder" row */
-.chat-folder-context-item-expandable {
-    justify-content: flex-start;
-}
-
-/* Folder sub-list inside context menu */
 .chat-folder-context-folder-list {
     padding: 2px 0 2px 8px;
     border-left: 2px solid rgba(0, 0, 0, 0.06);

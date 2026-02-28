@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronRightIcon,
   Pencil1Icon,
@@ -6,12 +7,29 @@ import {
   CheckIcon,
   Cross2Icon,
   ChatBubbleIcon,
+  ChevronDownIcon,
 } from "@radix-ui/react-icons";
 import type { FolderMeta } from "../../types/folder";
 import type { ChatMeta } from "../../types/chat";
 import "./chatFolder.css";
 
-interface ChatFolderProps {
+/** Reusable folder icon SVG for context menu and list. */
+const FolderIcon = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+export interface ChatFolderProps {
   folder: FolderMeta;
   chats: ChatMeta[];
   currentChatId: string | null;
@@ -20,7 +38,6 @@ interface ChatFolderProps {
   onDeleteFolder: (folderId: string) => void;
   onRenameChat: (chatId: string, newTitle: string) => void;
   onDeleteChat: (chatId: string) => void;
-  // Folder membership
   allFolders?: FolderMeta[];
   onMoveToFolder?: (chatId: string, folderId: string) => void;
   onRemoveChatFromFolder?: (chatId: string) => void;
@@ -39,11 +56,13 @@ export default function ChatFolder({
   onMoveToFolder,
   onRemoveChatFromFolder,
 }: ChatFolderProps) {
+  // ——— State ———
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(folder.name);
   const [renamingChatId, setRenamingChatId] = useState<string | null>(null);
   const [chatRenameValue, setChatRenameValue] = useState("");
+  /** Right-click context menu: { type: 'folder'|'chat', id, position }. */
   const [contextMenu, setContextMenu] = useState<{
     type: "folder" | "chat";
     id: string;
@@ -51,22 +70,24 @@ export default function ChatFolder({
     y: number;
   } | null>(null);
   const [contextFolderExpanded, setContextFolderExpanded] = useState(false);
-
-  // Drag-and-drop state
+  /** True when a chat is being dragged over this folder (drop target). */
   const [isDragOver, setIsDragOver] = useState(false);
 
   const renameInputRef = useRef<HTMLInputElement>(null);
   const chatRenameInputRef = useRef<HTMLInputElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  // Auto-expand if any chat inside is active
+  // Auto-expand folder when the active chat is inside it.
   useEffect(() => {
-    if (chats.some((c) => c.id === currentChatId)) {
-      setIsExpanded(true);
-    }
+    if (chats.some((c) => c.id === currentChatId)) setIsExpanded(true);
   }, [currentChatId, chats]);
 
-  // Auto-focus rename inputs
+  // Keep local rename value in sync when folder name changes from outside.
+  useEffect(() => {
+    setRenameValue(folder.name);
+  }, [folder.name]);
+
+  // Focus folder rename input when entering folder rename mode.
   useEffect(() => {
     if (isRenaming && renameInputRef.current) {
       renameInputRef.current.focus();
@@ -74,6 +95,7 @@ export default function ChatFolder({
     }
   }, [isRenaming]);
 
+  // Focus chat rename input when entering chat rename mode.
   useEffect(() => {
     if (renamingChatId && chatRenameInputRef.current) {
       chatRenameInputRef.current.focus();
@@ -81,9 +103,10 @@ export default function ChatFolder({
     }
   }, [renamingChatId]);
 
-  // Close context menu on outside click
+  // Close context menu when clicking outside.
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    if (!contextMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
       if (
         contextMenuRef.current &&
         !contextMenuRef.current.contains(e.target as Node)
@@ -91,125 +114,144 @@ export default function ChatFolder({
         setContextMenu(null);
         setContextFolderExpanded(false);
       }
-    }
-    if (contextMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [contextMenu]);
 
-  const handleFolderRename = () => {
-    const trimmed = renameValue.trim();
-    if (trimmed && trimmed !== folder.name) {
-      onRenameFolder(folder.id, trimmed);
-    }
-    setIsRenaming(false);
-  };
-
-  const handleChatRename = (chatId: string) => {
-    const trimmed = chatRenameValue.trim();
-    if (trimmed) {
-      onRenameChat(chatId, trimmed);
-    }
-    setRenamingChatId(null);
-    setChatRenameValue("");
-  };
-
-  const handleContextMenu = (
-    e: React.MouseEvent,
-    type: "folder" | "chat",
-    id: string,
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextFolderExpanded(false);
-    setContextMenu({ type, id, x: e.clientX, y: e.clientY });
-  };
-
-  const handleContextAction = (action: "rename" | "delete") => {
+  // Keep context menu within viewport when opened.
+  useEffect(() => {
     if (!contextMenu) return;
+    const el = contextMenuRef.current;
+    if (!el) return;
+    const margin = 8;
+    const rect = el.getBoundingClientRect();
+    const maxX = window.innerWidth - margin - rect.width;
+    const maxY = window.innerHeight - margin - rect.height;
+    const nextX = Math.min(Math.max(contextMenu.x, margin), Math.max(margin, maxX));
+    const nextY = Math.min(Math.max(contextMenu.y, margin), Math.max(margin, maxY));
+    if (nextX !== contextMenu.x || nextY !== contextMenu.y) {
+      setContextMenu({ ...contextMenu, x: nextX, y: nextY });
+    }
+  }, [contextMenu]);
 
-    if (contextMenu.type === "folder") {
-      if (action === "rename") {
-        setRenameValue(folder.name);
-        setIsRenaming(true);
-      } else {
-        onDeleteFolder(folder.id);
-      }
-    } else {
-      if (action === "rename") {
-        const chat = chats.find((c) => c.id === contextMenu.id);
-        if (chat) {
-          setChatRenameValue(chat.chat_title);
-          setRenamingChatId(contextMenu.id);
+  // ——— Handlers ———
+  const handleFolderRename = useCallback(() => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== folder.name) onRenameFolder(folder.id, trimmed);
+    setIsRenaming(false);
+  }, [renameValue, folder.id, folder.name, onRenameFolder]);
+
+  const handleChatRename = useCallback(
+    (chatId: string) => {
+      const trimmed = chatRenameValue.trim();
+      if (trimmed) onRenameChat(chatId, trimmed);
+      setRenamingChatId(null);
+      setChatRenameValue("");
+    },
+    [chatRenameValue, onRenameChat],
+  );
+
+  /** Open context menu at cursor; type and id identify the right-clicked item. */
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, type: "folder" | "chat", id: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextFolderExpanded(false);
+      setContextMenu({ type, id, x: e.clientX, y: e.clientY });
+    },
+    [],
+  );
+
+  /** Handle Rename or Delete from context menu (for either folder or chat). */
+  const handleContextAction = useCallback(
+    (action: "rename" | "delete") => {
+      if (!contextMenu) return;
+      if (contextMenu.type === "folder") {
+        if (action === "rename") {
+          setRenameValue(folder.name);
+          setIsRenaming(true);
+        } else {
+          onDeleteFolder(folder.id);
         }
       } else {
-        onDeleteChat(contextMenu.id);
+        if (action === "rename") {
+          const chat = chats.find((c) => c.id === contextMenu.id);
+          if (chat) {
+            setChatRenameValue(chat.chat_title);
+            setRenamingChatId(contextMenu.id);
+          }
+        } else {
+          onDeleteChat(contextMenu.id);
+        }
       }
-    }
+      setContextMenu(null);
+    },
+    [contextMenu, folder.id, folder.name, chats, onDeleteFolder, onDeleteChat],
+  );
 
-    setContextMenu(null);
-  };
-
-  // ── Drag-and-drop: folder as DROP TARGET ────────────────────────
-  const handleDragEnter = (e: React.DragEvent) => {
+  /** Folder as drop target: set drag-over state. */
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    // Only clear when the pointer truly leaves the drop-zone div,
-    // not when it moves between child elements inside it.
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+  /** Clear drag-over only when pointer leaves the drop zone (not when entering a child). */
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node))
       setIsDragOver(false);
-    }
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
+  /** Move the dropped chat into this folder; expand folder so user sees the result. */
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      const chatId = e.dataTransfer.getData("text/plain");
+      if (!chatId || chats.some((c) => c.id === chatId)) return;
+      onMoveToFolder?.(chatId, folder.id);
+      setIsExpanded(true);
+    },
+    [chats, folder.id, onMoveToFolder],
+  );
 
-    const chatId = e.dataTransfer.getData("text/plain");
-    if (!chatId) return;
+  /** Set drag data so drop targets can identify the chat. */
+  const handleChatDragStart = useCallback(
+    (e: React.DragEvent, chatId: string) => {
+      e.dataTransfer.setData("text/plain", chatId);
+      e.dataTransfer.effectAllowed = "move";
+    },
+    [],
+  );
 
-    // Don't move if it's already in this folder
-    const isAlreadyHere = chats.some((c) => c.id === chatId);
-    if (isAlreadyHere) return;
+  const handleMoveToFolder = useCallback(
+    (chatId: string, targetFolderId: string) => {
+      onMoveToFolder?.(chatId, targetFolderId);
+      setContextMenu(null);
+      setContextFolderExpanded(false);
+    },
+    [onMoveToFolder],
+  );
 
-    onMoveToFolder?.(chatId, folder.id);
-    // Expand folder so the user can see the moved chat
-    setIsExpanded(true);
-  };
+  const handleRemoveChatFromFolder = useCallback(
+    (chatId: string) => {
+      onRemoveChatFromFolder?.(chatId);
+      setContextMenu(null);
+    },
+    [onRemoveChatFromFolder],
+  );
 
-  // ── Drag-and-drop: chat items as DRAG SOURCES ───────────────────
-  const handleChatDragStart = (e: React.DragEvent, chatId: string) => {
-    e.dataTransfer.setData("text/plain", chatId);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  // ── Context menu: move chat to another folder ───────────────────
-  const handleMoveToFolder = (chatId: string, targetFolderId: string) => {
-    onMoveToFolder?.(chatId, targetFolderId);
-    setContextMenu(null);
-    setContextFolderExpanded(false);
-  };
-
-  const handleRemoveChatFromFolder = (chatId: string) => {
-    onRemoveChatFromFolder?.(chatId);
-    setContextMenu(null);
-  };
-
-  // Other folders this chat could move to (excluding the current folder)
+  /** Other folders (excluding this one) for "Move to folder" in context menu. */
   const otherFolders = allFolders.filter((f) => f.id !== folder.id);
 
   return (
     <div className="chat-folder">
-      {/* Drop-zone wrapper div — more reliable than a button as a drop target */}
+      {/* Folder header: either inline rename row or clickable header with drop zone */}
       {isRenaming ? (
         <div className="chat-folder-rename-row">
           <input
@@ -225,6 +267,7 @@ export default function ChatFolder({
             placeholder="Folder name"
           />
           <button
+            type="button"
             className="chat-folder-rename-btn chat-folder-rename-confirm"
             onClick={handleFolderRename}
             title="Confirm"
@@ -232,6 +275,7 @@ export default function ChatFolder({
             <CheckIcon width={12} height={12} />
           </button>
           <button
+            type="button"
             className="chat-folder-rename-btn chat-folder-rename-cancel"
             onClick={() => setIsRenaming(false)}
             title="Cancel"
@@ -248,6 +292,7 @@ export default function ChatFolder({
           onDrop={handleDrop}
         >
           <button
+            type="button"
             className="chat-folder-header"
             onClick={() => setIsExpanded(!isExpanded)}
             onContextMenu={(e) => handleContextMenu(e, "folder", folder.id)}
@@ -265,6 +310,7 @@ export default function ChatFolder({
             )}
             <div className="chat-folder-actions">
               <button
+                type="button"
                 className="chat-folder-action-btn"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -276,6 +322,7 @@ export default function ChatFolder({
                 <Pencil1Icon width={12} height={12} />
               </button>
               <button
+                type="button"
                 className="chat-folder-action-btn chat-folder-action-btn-danger"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -290,7 +337,7 @@ export default function ChatFolder({
         </div>
       )}
 
-      {/* Folder children (chats) */}
+      {/* Expanded: list of chats in this folder (or empty state) */}
       {isExpanded && (
         <div className="chat-folder-children">
           {chats.length === 0 ? (
@@ -313,6 +360,7 @@ export default function ChatFolder({
                       placeholder="Chat title"
                     />
                     <button
+                      type="button"
                       className="chat-folder-rename-btn chat-folder-rename-confirm"
                       onClick={() => handleChatRename(chat.id)}
                       title="Confirm"
@@ -320,6 +368,7 @@ export default function ChatFolder({
                       <CheckIcon width={11} height={11} />
                     </button>
                     <button
+                      type="button"
                       className="chat-folder-rename-btn chat-folder-rename-cancel"
                       onClick={() => setRenamingChatId(null)}
                       title="Cancel"
@@ -329,6 +378,7 @@ export default function ChatFolder({
                   </div>
                 ) : (
                   <button
+                    type="button"
                     className={`chat-folder-chat-item ${currentChatId === chat.id ? "chat-folder-chat-item-active" : ""}`}
                     onClick={() => onLoadChat(chat.id)}
                     onContextMenu={(e) => handleContextMenu(e, "chat", chat.id)}
@@ -346,6 +396,7 @@ export default function ChatFolder({
                     </span>
                     <div className="chat-folder-chat-actions">
                       <button
+                        type="button"
                         className="chat-folder-action-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -357,6 +408,7 @@ export default function ChatFolder({
                         <Pencil1Icon width={11} height={11} />
                       </button>
                       <button
+                        type="button"
                         className="chat-folder-action-btn chat-folder-action-btn-danger"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -375,137 +427,119 @@ export default function ChatFolder({
         </div>
       )}
 
-      {/* Context menu */}
+      {/* Right-click context menu: Rename, Remove from folder, Move to folder, Delete */}
       {contextMenu && (
-        <div
-          ref={contextMenuRef}
-          className="chat-folder-context-menu"
-          style={{
-            position: "fixed",
-            top: contextMenu.y,
-            left: contextMenu.x,
-            zIndex: 9999,
-          }}
-        >
-          <button
-            className="chat-folder-context-item"
-            onClick={() => handleContextAction("rename")}
+        createPortal(
+          <div
+            ref={contextMenuRef}
+            className="chat-folder-context-menu"
+            style={{
+              position: "fixed",
+              top: contextMenu.y,
+              left: contextMenu.x,
+              zIndex: 9999,
+            }}
           >
-            <Pencil1Icon width={13} height={13} />
-            <span>Rename</span>
-          </button>
+            <button
+              type="button"
+              className="chat-folder-context-item"
+              onClick={() => handleContextAction("rename")}
+            >
+              <Pencil1Icon width={13} height={13} />
+              <span>Rename</span>
+            </button>
 
-          {/* For chat items: show folder membership options */}
-          {contextMenu.type === "chat" && (
-            <>
-              <div className="chat-folder-context-divider" />
-
-              {/* Remove from this folder */}
-              <button
-                className="chat-folder-context-item"
-                onClick={() => handleRemoveChatFromFolder(contextMenu.id)}
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {contextMenu.type === "chat" && (
+              <>
+                <div className="chat-folder-context-divider" />
+                <button
+                  type="button"
+                  className="chat-folder-context-item"
+                  onClick={() => handleRemoveChatFromFolder(contextMenu.id)}
                 >
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                  <line x1="9" y1="14" x2="15" y2="14" />
-                </svg>
-                <span>Remove from folder</span>
-              </button>
-
-              {/* Move to another folder (only if other folders exist) */}
-              {otherFolders.length > 0 && (
-                <>
-                  <button
-                    className={`chat-folder-context-item chat-folder-context-item-expandable ${contextFolderExpanded ? "chat-folder-context-item-expanded" : ""}`}
-                    onClick={() => setContextFolderExpanded((prev) => !prev)}
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    <line x1="9" y1="14" x2="15" y2="14" />
+                  </svg>
+                  <span>Remove from folder</span>
+                </button>
+                {otherFolders.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className={`chat-folder-context-item chat-folder-context-item-expandable ${contextFolderExpanded ? "chat-folder-context-item-expanded" : ""}`}
+                      onClick={() => setContextFolderExpanded((p) => !p)}
                     >
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                      <line x1="12" y1="11" x2="12" y2="17" />
-                      <line x1="9" y1="14" x2="15" y2="14" />
-                    </svg>
-                    <span>Move to folder</span>
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{
-                        transform: contextFolderExpanded
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
-                        transition: "transform 0.15s ease",
-                        marginLeft: "auto",
-                      }}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-
-                  {contextFolderExpanded && (
-                    <div className="chat-folder-context-folder-list">
-                      {otherFolders.map((f) => (
-                        <button
-                          key={f.id}
-                          className="chat-folder-context-item chat-folder-context-folder-option"
-                          onClick={() =>
-                            handleMoveToFolder(contextMenu.id, f.id)
-                          }
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        <line x1="12" y1="11" x2="12" y2="17" />
+                        <line x1="9" y1="14" x2="15" y2="14" />
+                      </svg>
+                      <span>Move to folder</span>
+                      <ChevronDownIcon
+                        width={10}
+                        height={10}
+                        style={{
+                          transform: contextFolderExpanded
+                            ? "rotate(180deg)"
+                            : "rotate(0deg)",
+                          transition: "transform 0.15s ease",
+                          marginLeft: "auto",
+                        }}
+                      />
+                    </button>
+                    {contextFolderExpanded && (
+                      <div className="chat-folder-context-folder-list">
+                        {otherFolders.map((f) => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            className="chat-folder-context-item chat-folder-context-folder-option"
+                            onClick={() =>
+                              handleMoveToFolder(contextMenu.id, f.id)
+                            }
                           >
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                          </svg>
-                          <span>{f.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+                            <FolderIcon />
+                            <span>{f.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="chat-folder-context-divider" />
+              </>
+            )}
 
-              <div className="chat-folder-context-divider" />
-            </>
-          )}
-
-          <button
-            className="chat-folder-context-item chat-folder-context-item-danger"
-            onClick={() => handleContextAction("delete")}
-          >
-            <TrashIcon width={13} height={13} />
-            <span>Delete</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              className="chat-folder-context-item chat-folder-context-item-danger"
+              onClick={() => handleContextAction("delete")}
+            >
+              <TrashIcon width={13} height={13} />
+              <span>Delete</span>
+            </button>
+          </div>,
+          document.body,
+        )
       )}
     </div>
   );
