@@ -2229,7 +2229,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oalpaca"
+name = "oalpaca-studio"
 version = "0.1.0"
 dependencies = [
  "chrono",
